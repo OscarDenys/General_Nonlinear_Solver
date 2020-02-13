@@ -1,4 +1,4 @@
-%% simulation parameters (cf. table)
+%% simulation parameters (cf. table in assignement)
 
 T_cel = 25;
 nu_u = 20.8 / 100;
@@ -38,9 +38,36 @@ C_uamb = p_atm * nu_u / (R_g * T);
 C_vamb = p_atm * nu_v / (R_g * T);
 
 
-%% 
+%% generate mesh
+
+model = createpde;
+
+load('pear_data.mat');      % obtained via getPearShape.m
+pgon = polyshape(x,y);      % create polygon from (x,y) points
+tr = triangulation(pgon);
+
+tnodes = [x; y];
+telements = tr.ConnectivityList';      
+
+geometryFromMesh(model,tnodes,telements);   % create geometry
+clear tnodes telements tr pgon;
+mesh = generateMesh(model);
+
+figure(1);
+subplot(121); pdegplot(model,'EdgeLabels','on'); ylim([0 1]); axis off;
+subplot(122); pdemesh(model); ylim([0 1]); axis off;
+
+%% finite elements
+
+nodes = mesh.Nodes;
+nb_nodes = length(nodes);
+
+for k = 1:nb_nodes
+    
+    
+end
 
 
 
-%%
+
 
