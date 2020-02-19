@@ -146,14 +146,14 @@ for testfunction_i = 1:nb_nodes
          % Ik denk dat het += is omdat we integraal van 1 testfunctie
          % hebben opgesplitst in meerdere bijdrages over verschillende
          % elementen. 
-         stiffness_matrix(testfunction_i,node1) = stiffness_matrix(testfunction_i,node1) + c1;
-         stiffness_matrix(testfunction_i,node2) = stiffness_matrix(testfunction_i,node2) + c2;
-         stiffness_matrix(testfunction_i,node3) = stiffness_matrix(testfunction_i,node3) + c3;
+         A(testfunction_i,node1) = A(testfunction_i,node1) + c1;
+         A(testfunction_i,node2) = A(testfunction_i,node2) + c2;
+         A(testfunction_i,node3) = A(testfunction_i,node3) + c3;
          b(testfunction_i,1) = b(testfunction_i,1) + int_5_2_lin;
-         stiffness_matrix(nb_nodes+testfunction_i,nb_nodes+node1) = stiffness_matrix(nb_nodes+testfunction_i,node1) + c1_hat;
-         stiffness_matrix(nb_nodes+testfunction_i,nb_nodes+node2) = stiffness_matrix(nb_nodes+testfunction_i,node2) + c2_hat;
-         stiffness_matrix(nb_nodes+testfunction_i,nb_nodes+node3) = stiffness_matrix(nb_nodes+testfunction_i,node3) + c3_hat;
-         b(nb_nodes+testfunction_i) = b(nb_nodes+testfunction_i) + int_6_2_lin;
+         A(nb_nodes+testfunction_i,nb_nodes+node1) = A(nb_nodes+testfunction_i,node1) + c1_hat;
+         A(nb_nodes+testfunction_i,nb_nodes+node2) = A(nb_nodes+testfunction_i,node2) + c2_hat;
+         A(nb_nodes+testfunction_i,nb_nodes+node3) = A(nb_nodes+testfunction_i,node3) + c3_hat;
+         b(nb_nodes+testfunction_i) = b(nd_nodes+testfunction_i) + int_6_2_lin;
      end
     
 end
