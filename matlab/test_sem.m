@@ -65,13 +65,13 @@ Points = p;
 edgeLabels = e(1,:);
 triangleLabels = t(1:3,:);
 
-writematrix(Points,'points.txt','Delimiter',',')  
+writematrix(Points,'points.txt','Delimiter',' ')  
 type points.txt
 
-writematrix(edgeLabels,'edgeLabels.txt','Delimiter',',')  
+writematrix(edgeLabels,'edgeLabels.txt','Delimiter',' ')  
 type edgeLabels.txt
 
-writematrix(triangleLabels,'triangleLabels.txt','Delimiter',',')  
+writematrix(triangleLabels,'triangleLabels.txt','Delimiter',' ')  
 type triangleLabels.txt
 
 
