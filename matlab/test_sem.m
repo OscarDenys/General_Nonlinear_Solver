@@ -51,7 +51,7 @@ telements = tr.ConnectivityList';
 
 geometryFromMesh(model,tnodes,telements);   % create geometry
 clear tnodes telements tr pgon;
-mesh = generateMesh(model,'GeometricOrder','linear');
+mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.25);
 
 figure(1);
 subplot(121); pdegplot(model,'EdgeLabels','on'); ylim([0 1]); axis off;
@@ -68,7 +68,9 @@ nb_nodes = length(nodes);       % aantal knopen = aantal basisfuncties
 A = zeros(2*nb_nodes);
 gamma = zeros(2*nb_nodes,1);
 
-boundary_nodes = [1 58:-1:25 2];    % hard coded, andere methode nodig in C++
+%boundary_nodes = [1 58:-1:25 2];    % hard coded, andere methode nodig in C++
+
+boundary_nodes = [1 8:-1:5 2];
 
 boundary_length = 0;
 for i = 1:length(boundary_nodes)-1
@@ -84,7 +86,7 @@ for a = 0:1
         C_amb = C_vamb;
     end
     Dt = 1/length(boundary_nodes);
-    k = boundary_length;
+%     k = boundary_length;
     for i = 1:length(boundary_nodes)
         node = boundary_nodes(i);
         
@@ -93,7 +95,7 @@ for a = 0:1
 
             Dr = (nodes(1,node)-nodes(1,prev_node));
             Dz = (nodes(2,node)-nodes(2,prev_node));
-
+            k = sqrt(Dr^2 + Dz^2) / Dt^2;
     %         Dt = sqrt(Dr^2 + Dz^2) / boundary_length;
 
             A(a*nb_nodes+node,a*nb_nodes+prev_node) = A(a*nb_nodes+node,a*nb_nodes+prev_node) + ...
@@ -111,7 +113,8 @@ for a = 0:1
             Dr = (nodes(1,next_node)-nodes(1,node));
             Dz = (nodes(2,next_node)-nodes(2,node));
     %         Dt = sqrt(Dr^2 + Dz^2) / boundary_length;        
-
+            k = sqrt(Dr^2 + Dz^2) / Dt^2;
+            
             A(a*nb_nodes+node,a*nb_nodes+node) = A(a*nb_nodes+node,a*nb_nodes+node) + ...
                            k * (-Dt^4*Dr/12 + ...
                                 Dt^3*( nodes(1,next_node)/2 ...
