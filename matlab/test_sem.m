@@ -57,6 +57,24 @@ figure(1);
 subplot(121); pdegplot(model,'EdgeLabels','on'); ylim([0 1]); axis off;
 subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 1]); axis off;
 
+%% export mesh to text file
+
+[p,e,t] = meshToPet(mesh);
+
+Points = p;
+edgeLabels = e(1,:);
+triangleLabels = t(1:3,:);
+
+writematrix(Points,'points.txt','Delimiter',',')  
+type points.txt
+
+writematrix(edgeLabels,'edgeLabels.txt','Delimiter',',')  
+type edgeLabels.txt
+
+writematrix(triangleLabels,'triangleLabels.txt','Delimiter',',')  
+type triangleLabels.txt
+
+
 %% finite elements
 
 
