@@ -51,21 +51,74 @@ telements = tr.ConnectivityList';
 
 geometryFromMesh(model,tnodes,telements);   % create geometry
 clear tnodes telements tr pgon;
-mesh = generateMesh(model);
+mesh = generateMesh(model,'GeometricOrder','linear');
 
 figure(1);
 subplot(121); pdegplot(model,'EdgeLabels','on'); ylim([0 1]); axis off;
-subplot(122); pdemesh(model); ylim([0 1]); axis off;
+subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 1]); axis off;
 
 %% finite elements
 
-nodes = mesh.Nodes;
-nb_nodes = length(nodes);
 
-for k = 1:nb_nodes
-    
-    
+% opstellen van lijnintegraal
+
+nodes = mesh.Nodes;
+nb_nodes = length(nodes);       % aantal knopen = aantal basisfuncties
+
+A = zeros(2*nb_nodes);
+gamma = zeros(2*nb_nodes,1);
+
+boundary_nodes = [1 58:-1:25 2];    % hard coded, andere methode nodig in C++
+
+boundary_length = 0;
+for i = 1:length(boundary_nodes)-1
+    node = boundary_nodes(i);
+    next_node = boundary_nodes(i+1);
+    boundary_length = boundary_length + sqrt( (nodes(1,node)-nodes(1,next_node))^2 + (nodes(2,node)-nodes(2,next_node))^2);
 end
+
+
+for a = 0:1
+    C_amb = C_uamb;
+    if (a==1)
+        C_amb = C_vamb;
+    end
+    for i = 2:length(boundary_nodes)-1
+        node = boundary_nodes(i);
+        prev_node = boundary_nodes(i-1);
+        next_node = boundary_nodes(i+1);
+
+        Dr = (nodes(1,node)-nodes(1,prev_node));
+        Dz = (nodes(2,node)-nodes(2,prev_node));
+        Dt = sqrt(Dr^2 + Dz^2) / boundary_length;
+        k = boundary_length;
+        
+        A(a*nb_nodes+node,a*nb_nodes+prev_node) = A(a*nb_nodes+node,a*nb_nodes+prev_node) + ...
+                   ( -Dt^4/4*Dr + ...
+                      Dt^3/3*(nodes(1,node)-2*nodes(1,prev_node)) + ...
+                      Dt^2/2*nodes(1,prev_node) ) * k;
+        A(a*nb_nodes+node,a*nb_nodes+node) = A(a*nb_nodes+node,a*nb_nodes+node) + ...
+                   ( Dt^4/4*Dr + Dt^3/3*nodes(1,prev_node) ) * k;
+        gamma(a*nb_nodes+node) = - Dt^2*C_amb*k * (Dt/3*Dr - nodes(1,prev_node)/2);
+        
+        Dr = (nodes(1,next_node)-nodes(1,node));
+        Dz = (nodes(2,next_node)-nodes(2,node));
+        Dt = sqrt(Dr^2 + Dz^2) / boundary_length;        
+                
+        A(a*nb_nodes+node,a*nb_nodes+node) = A(a*nb_nodes+node,a*nb_nodes+node) + ...
+                       k * (-Dt^4*Dr/12 + ...
+                            Dt^3*( nodes(1,next_node)/2 ...
+                                   -2*nodes(1,node)/3 ...
+                                   -1/3 ) + ...
+                            Dt^2*nodes(1,node)/2 );
+        A(a*nb_nodes+node,a*nb_nodes+next_node) = A(a*nb_nodes+node,a*nb_nodes+next_node) + ...
+                            k * ( Dt^4*Dr/12 + Dt^3*nodes(1,node)/6 );
+        gamma(a*nb_nodes+node) = gamma(a*nb_nodes+node) + ...
+                       k * C_amb * (Dt^3*(1/3 - Dr/2) - Dt^2*nodes(1,node)/2);
+    end
+end
+
+% TODO: termen voor i = 1 en i = length(boundary_nodes)
 
 
 
