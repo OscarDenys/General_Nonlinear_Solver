@@ -51,7 +51,7 @@ telements = tr.ConnectivityList';
 
 geometryFromMesh(model,tnodes,telements);   % create geometry
 clear tnodes telements tr pgon;
-mesh = generateMesh(model,'GeometricOrder','linear');%,'Hmin',0.25);
+mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.25);
 
 figure(1);
 subplot(121); pdegplot(model,'EdgeLabels','on'); ylim([0 1]); axis off;
@@ -99,7 +99,7 @@ for elem_index = 1:nb_elements_total
     
     elem_stiff = zeros(3); 
     element = mesh.Elements(:,elem_index);     % node indexes of this element
-    n1 = element(1);           % node index
+    n1 = element(1);           % node indices
     n2 = element(2);
     n3 = element(3);
     P1 = nodes(:,n1);          % node coordinates
@@ -143,9 +143,9 @@ for elem_index = 1:nb_elements_total
      
     
     % =====================   integraal 2 - lineair (5-)
-    F1 = V_mu * det_jac * ( r(0,0,P1,P2,P3)) / 6;
-    F2 = V_mu * det_jac * ( r(1,0,P1,P2,P3)) / 6;
-    F3 = V_mu * det_jac * ( r(1,1,P1,P2,P3)) / 6;
+    F1 = V_mu * det_jac * (2*P1(1) + P2(1) + P3(1)) / 24;
+    F2 = V_mu * det_jac * (2*P2(1) + P3(1) + P1(1)) / 24;
+    F3 = V_mu * det_jac * (2*P3(1) + P1(1) + P2(1)) / 24;
     
     b(n1) = b(n1) + F1;
     b(n2) = b(n2) + F2;
@@ -187,9 +187,9 @@ for elem_index = 1:nb_elements_total
      
     
     % =====================   integraal 2 - lineair (6)
-    F1 = - (r_q * V_mu + V_mfv) * det_jac * ( r(0,0,P1,P2,P3)) / 6;
-    F2 = - (r_q * V_mu + V_mfv) * det_jac * ( r(1,0,P1,P2,P3)) / 6;
-    F3 = - (r_q * V_mu + V_mfv) * det_jac * ( r(1,1,P1,P2,P3)) / 6;
+    F1 = - (r_q * V_mu + V_mfv) * det_jac * (2*P1(1) + P2(1) + P3(1)) / 24;
+    F2 = - (r_q * V_mu + V_mfv) * det_jac * (2*P2(1) + P3(1) + P1(1)) / 24;
+    F3 = - (r_q * V_mu + V_mfv) * det_jac * (2*P3(1) + P1(1) + P2(1)) / 24;
     
     b(n1) = b(n1) + F1;
     b(n2) = b(n2) + F2;
@@ -201,11 +201,13 @@ end
 
 for a = 0:1
     C_amb = C_uamb;
+    rho = rho_u;
     if (a==1)
         C_amb = C_vamb;
+        rho = rho_v;
     end
-    Dt = 1/length(boundary_nodes);
-%     k = boundary_length;
+%     Dt = 1/length(boundary_nodes);
+    k = boundary_length;
     for i = 1:length(boundary_nodes)
         node = boundary_nodes(i);
         
@@ -214,16 +216,16 @@ for a = 0:1
 
             Dr = (nodes(1,node)-nodes(1,prev_node));
             Dz = (nodes(2,node)-nodes(2,prev_node));
-            k = sqrt(Dr^2 + Dz^2) / Dt^2;
-    %         Dt = sqrt(Dr^2 + Dz^2) / boundary_length;
+%             k = sqrt(Dr^2 + Dz^2) / Dt^2;
+            Dt = sqrt(Dr^2 + Dz^2) / boundary_length;
 
             stiffness_matrix(a*nb_nodes+node,a*nb_nodes+prev_node) = stiffness_matrix(a*nb_nodes+node,a*nb_nodes+prev_node) + ...
-                       ( -Dt^4/4*Dr + ...
+                  rho* ( -Dt^4/4*Dr + ...
                           Dt^3/3*(nodes(1,node)-2*nodes(1,prev_node)) + ...
                           Dt^2/2*nodes(1,prev_node) ) * k;
             stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) = stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) + ...
-                       ( Dt^4/4*Dr + Dt^3/3*nodes(1,prev_node) ) * k;
-            b(a*nb_nodes+node) = - Dt^2*C_amb*k * (Dt/3*Dr - nodes(1,prev_node)/2);
+                  rho* ( Dt^4/4*Dr + Dt^3/3*nodes(1,prev_node) ) * k;
+            b(a*nb_nodes+node) = - rho* Dt^2*C_amb*k * (Dt/3*Dr - nodes(1,prev_node)/2);
         end
         
         if (i~=length(boundary_nodes))
@@ -231,19 +233,19 @@ for a = 0:1
         
             Dr = (nodes(1,next_node)-nodes(1,node));
             Dz = (nodes(2,next_node)-nodes(2,node));
-    %         Dt = sqrt(Dr^2 + Dz^2) / boundary_length;        
-            k = sqrt(Dr^2 + Dz^2) / Dt^2;
+            Dt = sqrt(Dr^2 + Dz^2) / boundary_length;        
+%             k = sqrt(Dr^2 + Dz^2) / Dt^2;
             
             stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) = stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) + ...
-                           k * (-Dt^4*Dr/12 + ...
+                     rho*  k * (-Dt^4*Dr/12 + ...
                                 Dt^3*( nodes(1,next_node)/2 ...
                                        -2*nodes(1,node)/3 ...
                                        -1/3 ) + ...
                                 Dt^2*nodes(1,node)/2 );
             stiffness_matrix(a*nb_nodes+node,a*nb_nodes+next_node) = stiffness_matrix(a*nb_nodes+node,a*nb_nodes+next_node) + ...
-                                k * ( Dt^4*Dr/12 + Dt^3*nodes(1,node)/6 );
+                      rho*      k * ( Dt^4*Dr/12 + Dt^3*nodes(1,node)/6 );
             b(a*nb_nodes+node) = b(a*nb_nodes+node) + ...
-                           k * C_amb * (Dt^3*(1/3 - Dr/2) - Dt^2*nodes(1,node)/2);
+                      rho* k * C_amb * (Dt^3*(1/3 - Dr/2) - Dt^2*nodes(1,node)/2);
         end
     end
 end
