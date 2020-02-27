@@ -66,14 +66,14 @@ Points = p;
 edgeLabels = e(1,:);
 triangleLabels = t(1:3,:);
 
-writematrix(Points,'points.txt','Delimiter',' ')  
-type points.txt
+writematrix(Points,'points.txt','Delimiter',' ')  ;
+type points.txt;
 
-writematrix(edgeLabels,'edgeLabels.txt','Delimiter',' ')  
-type edgeLabels.txt
+writematrix(edgeLabels,'edgeLabels.txt','Delimiter',' ');  
+type edgeLabels.txt;
 
-writematrix(triangleLabels,'triangleLabels.txt','Delimiter',' ')  
-type triangleLabels.txt     
+writematrix(triangleLabels,'triangleLabels.txt','Delimiter',' ');  
+type triangleLabels.txt;     
         
 %%
 nodes = mesh.Nodes;
@@ -92,17 +92,27 @@ scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
 %scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
 
 subplot(212);
-hold on; title('O_2 concentration');
+hold on; title('CO_2 concentration');
 scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
 %scatter3(-nodes(1,:), nodes(2,:), c(length(nodes)+1:end))
 
 %%
-fun = @(C) ( K*C - f + eval_nonlinear(mesh, C));
-
-C = fsolve(fun, C_0);
-
-
-
-
+fun = @(C) 1e5*( K*C - f + eval_nonlinear(mesh, C));
+%%
+options = optimoptions('fsolve',...
+    'Display','iter','FunctionTolerance',1e-12, 'UseParallel', true);
+C = fsolve(fun, C_0, options );
 
 
+
+%%
+
+figure(2); clf;
+subplot(211); hold on; title('O_2 concentration');
+scatter3(nodes(1,:), nodes(2,:), C(1:length(nodes)));
+%scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
+
+subplot(212);
+hold on; title('CO_2 concentration');
+scatter3(nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
+%scatter3(-nodes(1,:), nodes(2,:), c(length(nodes)+1:end))
