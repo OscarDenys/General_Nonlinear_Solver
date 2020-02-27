@@ -120,21 +120,96 @@ for elem_index = 1:nb_elements_total
     temp = det_jac * V_mu / 4;
     F1 = temp * ( r(0,0,P1,P2,P3));
     F2 = temp * ( r(1,0,P1,P2,P3));
-%     F3 = 0;
+    F3 = 0;
     
-    b(n1) = b(n1) + F1;
-    b(n2) = b(n2) + F2;
+    
     
 end
-   
+    
 
 
 
+%      for j = 1:length(nonzero_elements(1,:))
+%          element = nonzero_elements(:,j);
+%          index_test_function = find(element == testfunction_i);
+%          
+%          node1 = element(index_test_function); % Should equal testfunction_i
+%          node2 = element(mod(index_test_function,3)+1);
+%          node3 = element(mod(mod(index_test_function,3)+1,3)+1);
+%          X1 = nodes(:,node1); % (x1,y1) = (r1,z1)
+%          X2 = nodes(:,node2);
+%          X3 = nodes(:,node3);
+%         
+%          % Formula for area of triangle given three vertices:
+%          area = abs((X1(1)*X2(2) + X2(1)*X3(2) + X3(1)*X1(2) - X1(1)*X3(2) - X2(1)*X1(2) - X3(1)*X2(2))/2);
+%          
+%          % Calculations of Jacobian:
+%          A = (X3(1) - X1(1))*(X2(2) - X1(2))/((X2(1)-X1(1))*(X3(2)-X1(2)));
+%          dr_dy = 2*area*(X3(1)-X1(1))/((1-A)*(X2(1)-X3(1))*(X3(2)-X1(2)));
+%          dr_dksi = 2*area/((1-A)*(X3(2)-X1(2)));
+%          dz_dy = 2*area/((1-A)*(X3(2)-X1(2)));
+%          dz_dksi = 2*area*(X2(2)-X1(2))/((1-A)*(X3(2)-X1(2))*(X2(1)-X1(1)));
+%          Jac = [[dr_dy, dr_dksi];[dz_dy, dz_dksi]];
+%          det_jac = det(Jac);
+%          
+%          % FIRST INTEGRAL of (5) --------------------------------------------
+%          
+%          % Calculations of D (see mathematical derivation):
+%          D = (r(0,0,X1,X2,X3)+r(0,1,X1,X2,X3))/4;
+%          
+%          % Coefficients of Ci:
+%          c1 = D*det_jac*(sigma_ur+sigma_uz);
+%          c2 = -D*det_jac*sigma_ur;
+%          c3 = -D*det_jac*sigma_uz;
+%          
+%          % SECOND INTEGRAL of (5) ----------------------------------------
+%          E = r(0,0,X1,X2,X3)*det_jac*V_mu;
+%          
+%          % NONLINEAR:
+%          %nonlinear_term = E*c(node1)/(K_mu+K_mu/K_mv*c(node1+nb_nodes)+c(node1)+c(node1)*c(node1+nb_nodes)/K_mv);
+%          
+%          % LINEAR:
+%          int_5_2_lin = -V_mu*det_jac*r(0,0,X1,X2,X3)/4;
+%          
+%          % FIRST INTEGRAL of (6) ----------------------------------------
+%          c1_hat = D*det_jac*(sigma_vr+sigma_vz);
+%          c2_hat = -D*det_jac*sigma_vr;
+%          c3_hat = -D*det_jac*sigma_vz;
+%          
+%          % SECOND INTEGRAL of (6) ----------------------------------------
+%          % NONLINEAR:
+%          %nonlinear_term = ...
+%          
+%          % LINEAR:
+%          int_6_2_lin = -r_q*V_mu*det_jac*r(0,0,X1,X2,X3)/4;
+%          
+%          % Alle termen toevoegen aan sparse system of equations
+%          % TODO: termen van lijnintegraal Sem nog toevoegen...
+%          % Ik denk dat het += is omdat we integraal van 1 testfunctie
+%          % hebben opgesplitst in meerdere bijdrages over verschillende
+%          % elementen. 
+%          stiffness_matrix(testfunction_i,node1) = stiffness_matrix(testfunction_i,node1) + c1;
+%          stiffness_matrix(testfunction_i,node2) = stiffness_matrix(testfunction_i,node2) + c2;
+%          stiffness_matrix(testfunction_i,node3) = stiffness_matrix(testfunction_i,node3) + c3;
+%          b(testfunction_i,1) = b(testfunction_i,1) + int_5_2_lin;
+%          stiffness_matrix(nb_nodes+testfunction_i,nb_nodes+node1) = stiffness_matrix(nb_nodes+testfunction_i,node1) + c1_hat;
+%          stiffness_matrix(nb_nodes+testfunction_i,nb_nodes+node2) = stiffness_matrix(nb_nodes+testfunction_i,node2) + c2_hat;
+%          stiffness_matrix(nb_nodes+testfunction_i,nb_nodes+node3) = stiffness_matrix(nb_nodes+testfunction_i,node3) + c3_hat;
+%          b(nb_nodes+testfunction_i) = b(nb_nodes+testfunction_i) + int_6_2_lin;
+%      end
+%     
+% end
 
 function [r_] = r(ksi, y, P1, P2, P3)
     r_ = P1(1) * (1-ksi - y) + P2(1) * (ksi) + P3(1) * (y);
 end 
 
-
+% function [z_] = z(ksi, y, X1, X2, X3)
+%     area = abs((X1(1)*X2(2) + X2(1)*X3(2) + X3(1)*X1(2) - X1(1)*X3(2) ...
+%                     - X2(1)*X1(2) - X3(1)*X2(2))/2);
+%     A = (X3(1) - X1(1))*(X2(2) - X1(2))/((X2(1)-X1(1))*(X3(2)-X1(2)));
+%     z_ = 1/((1-A)*(X2(1)-X1(1)))*(y*2*area+(X2(2)-X1(2))*...
+%         (ksi*2*area+(X3(1)-X1(1))*X1(2))/(X3(2)-X1(2)))+X1(2)/(1-A);
+% end 
 
 
