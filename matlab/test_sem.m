@@ -61,9 +61,9 @@ subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 1]); axis off;
 
 [p,e,t] = meshToPet(mesh);
 
-Points = p;
+Points = p';
 edgeLabels = e(1,:);
-triangleLabels = t(1:3,:);
+triangleLabels = t(1:3,:)';
 
 writematrix(Points,'points.txt','Delimiter',' ')  
 type points.txt
