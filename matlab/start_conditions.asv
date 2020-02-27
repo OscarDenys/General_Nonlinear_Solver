@@ -56,6 +56,7 @@ mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.25);
 figure(1);
 subplot(121); pdegplot(model,'EdgeLabels','on'); ylim([0 1]); axis off;
 subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 1]); axis off;
+save('var.mat');
 
 %% export mesh to text file
 
@@ -75,9 +76,23 @@ writematrix(triangleLabels,'triangleLabels.txt','Delimiter',' ')
 type triangleLabels.txt     
         
 %%
-% Get stiff
-[]
+% Get stiffness matrix K and constant term f:
+[K, f, f_lin] = create_stiffness(mesh);
 
+
+% Start iterative solver: 
+% First solution: 
+C_0 = K \ -f_lin;
+
+function [F] = loop_iterator(C)
+load('var.mat');
+ F = K*C - f + eval_nonlinear(mesh, C);
+end
+
+fsolve(loop_iterator, C_0);
+
+
+%%
 save('lin_system.mat', 'stiffness_matrix', 'b');
 
 

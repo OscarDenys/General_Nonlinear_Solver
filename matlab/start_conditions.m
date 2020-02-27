@@ -51,11 +51,12 @@ telements = tr.ConnectivityList';
 
 geometryFromMesh(model,tnodes,telements);   % create geometry
 clear tnodes telements tr pgon;
-mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.25);
+mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.05);
 
 figure(1);
 subplot(121); pdegplot(model,'EdgeLabels','on'); ylim([0 1]); axis off;
 subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 1]); axis off;
+save('var.mat');
 
 %% export mesh to text file
 
@@ -75,16 +76,30 @@ writematrix(triangleLabels,'triangleLabels.txt','Delimiter',' ')
 type triangleLabels.txt     
         
 %%
+nodes = mesh.Nodes;
 % Get stiffness matrix K and constant term f:
-[K,f] = create_stiffness(mesh);
+[K, f, f_lin] = create_stiffness(mesh);
 
-% Get linearised term to start non-linear solver:
-f_lin = lin_start_conditions(mesh);
 
 % Start iterative solver: 
+% First solution: 
+C_0 = K \ -f_lin;
 
+%%
+figure(2); clf;
+subplot(211); hold on; title('O_2 concentration');
+scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+%scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
 
-save('lin_system.mat', 'stiffness_matrix', 'b');
+subplot(212);
+hold on; title('O_2 concentration');
+scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+%scatter3(-nodes(1,:), nodes(2,:), c(length(nodes)+1:end))
+
+%%
+fun = @(C) ( K*C - f + eval_nonlinear(mesh, C));
+
+C = fsolve(fun, C_0);
 
 
 
