@@ -75,14 +75,8 @@ writematrix(triangleLabels,'triangleLabels.txt','Delimiter',' ')
 type triangleLabels.txt     
         
 %%
-% Get stiffness matrix K and constant term f:
-[K,f] = create_stiffness(mesh);
-
-% Get linearised term to start non-linear solver:
-f_lin = lin_start_conditions(mesh);
-
-% Start iterative solver: 
-
+% Get stiff
+[]
 
 save('lin_system.mat', 'stiffness_matrix', 'b');
 
