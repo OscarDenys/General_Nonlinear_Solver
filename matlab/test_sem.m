@@ -61,12 +61,16 @@ subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 1]); axis off;
 
 [p,e,t] = meshToPet(mesh);
 
-Points = p';
+XPoints = p(1,:)';
+YPoints = p(2,:)';
 edgeLabels = e(1,:)-1;
 triangleLabels = t(1:3,:)'-1;
 
-writematrix(Points,'points.txt','Delimiter',' ')  
-type points.txt
+writematrix(XPoints,'Xpoints.txt','Delimiter',' ')  
+type Xpoints.txt
+
+writematrix(YPoints,'Ypoints.txt','Delimiter',' ')  
+type Ypoints.txt
 
 writematrix(edgeLabels,'edgeLabels.txt','Delimiter',' ')  
 type edgeLabels.txt
