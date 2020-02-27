@@ -6,13 +6,14 @@ function [K, f, f_lin] = create_stiffness(mesh)
     nb_elements_total = length(mesh.Elements(1,:));
 
     boundary_nodes = [1 58:-1:25 2]; % Hardcode Hmin = 0.05
+    
 
-    boundary_length = 0;
-    for i = 1:length(boundary_nodes)-1
-        node = boundary_nodes(i);
-        next_node = boundary_nodes(i+1);
-        boundary_length = boundary_length + sqrt( (nodes(1,node)-nodes(1,next_node))^2 + (nodes(2,node)-nodes(2,next_node))^2);
-    end
+%     boundary_length = 0;
+%     for i = 1:length(boundary_nodes)-1
+%         node = boundary_nodes(i);
+%         next_node = boundary_nodes(i+1);
+%         boundary_length = boundary_length + sqrt( (nodes(1,node)-nodes(1,next_node))^2 + (nodes(2,node)-nodes(2,next_node))^2);
+%     end
 
     % Iterate over all elements
     stiffness_matrix = zeros(2*nb_nodes, 2*nb_nodes);
@@ -131,8 +132,7 @@ function [K, f, f_lin] = create_stiffness(mesh)
             C_amb = C_vamb;
             rho = rho_v;
         end
-    %     Dt = 1/length(boundary_nodes);
-        k = boundary_length;
+        Dt = 1/length(boundary_nodes);
         for i = 1:length(boundary_nodes)
             node = boundary_nodes(i);
 
@@ -141,16 +141,13 @@ function [K, f, f_lin] = create_stiffness(mesh)
 
                 Dr = (nodes(1,node)-nodes(1,prev_node));
                 Dz = (nodes(2,node)-nodes(2,prev_node));
-    %             k = sqrt(Dr^2 + Dz^2) / Dt^2;
-                Dt = sqrt(Dr^2 + Dz^2) / boundary_length;
+                k = sqrt(Dr^2 + Dz^2) / Dt;
 
                 stiffness_matrix(a*nb_nodes+node,a*nb_nodes+prev_node) = stiffness_matrix(a*nb_nodes+node,a*nb_nodes+prev_node) + ...
-                      rho* ( -Dt^4/4*Dr + ...
-                              Dt^3/3*(nodes(1,node)-2*nodes(1,prev_node)) + ...
-                              Dt^2/2*nodes(1,prev_node) ) * k;
+                      rho* ( nodes(1,node) + nodes(1,prev_node) ) * k / 6;
                 stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) = stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) + ...
-                      rho* ( Dt^4/4*Dr + Dt^3/3*nodes(1,prev_node) ) * k;
-                b(a*nb_nodes+node) = - rho* Dt^2*C_amb*k * (Dt/3*Dr - nodes(1,prev_node)/2);
+                      rho* ( nodes(1,node)/4 + nodes(1,prev_node)/12 ) * k;
+                b(a*nb_nodes+node) = - rho* k * C_amb * (nodes(1,node)/3 + nodes(1,prev_node)/6);
             end
 
             if (i~=length(boundary_nodes))
@@ -158,19 +155,14 @@ function [K, f, f_lin] = create_stiffness(mesh)
 
                 Dr = (nodes(1,next_node)-nodes(1,node));
                 Dz = (nodes(2,next_node)-nodes(2,node));
-                Dt = sqrt(Dr^2 + Dz^2) / boundary_length;        
-    %             k = sqrt(Dr^2 + Dz^2) / Dt^2;
+                k = sqrt(Dr^2 + Dz^2) / Dt;
 
                 stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) = stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) + ...
-                         rho*  k * (-Dt^4*Dr/12 + ...
-                                    Dt^3*( nodes(1,next_node)/2 ...
-                                           -2*nodes(1,node)/3 ...
-                                           -1/3 ) + ...
-                                    Dt^2*nodes(1,node)/2 );
+                         rho*  k * ( nodes(1,node)/4 + nodes(1,next_node)/12);
                 stiffness_matrix(a*nb_nodes+node,a*nb_nodes+next_node) = stiffness_matrix(a*nb_nodes+node,a*nb_nodes+next_node) + ...
-                          rho*      k * ( Dt^4*Dr/12 + Dt^3*nodes(1,node)/6 );
+                          rho*      k * ( nodes(1,node)/4 - nodes(1,next_node)/12 );
                 b(a*nb_nodes+node) = b(a*nb_nodes+node) + ...
-                          rho* k * C_amb * (Dt^3*(1/3 - Dr/2) - Dt^2*nodes(1,node)/2);
+                          - rho* k * C_amb * (nodes(1,node)/12 + nodes(1,next_node)/12 );
             end
         end
     end
