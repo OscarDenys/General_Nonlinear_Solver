@@ -5,7 +5,7 @@ function [K, f, f_lin] = create_stiffness(mesh)
     nb_nodes = length(nodes);
     nb_elements_total = length(mesh.Elements(1,:));
 
-    boundary_nodes = [1 58:-1:25 2]; % Hardcode Hmin = 0.05
+    boundary_nodes = [1 42:-1:19 2]; % Hardcode Hmin = 0.05
     
 
 %     boundary_length = 0;
