@@ -85,6 +85,8 @@ nodes = mesh.Nodes;
 % First solution: 
 C_0 = (K+K_lin) \ -f_lin;
 
+% C_0(C_0<0) = -20000;
+
 %%
 figure(2); clf;
 subplot(121); hold on;
