@@ -78,29 +78,32 @@ type triangleLabels.txt;
 %%
 nodes = mesh.Nodes;
 % Get stiffness matrix K and constant term f:
-[K, f, f_lin] = create_stiffness(mesh);
+[K, K_lin, f, f_lin] = create_stiffness(mesh);
 
 
 % Start iterative solver: 
 % First solution: 
-C_0 = K \ -f_lin;
+C_0 = (K+K_lin) \ -f_lin;
 
 %%
 figure(2); clf;
-subplot(211); hold on; title('O_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+subplot(121); hold on;
+pdeplot(model,'XYData',C_0(1:length(nodes)));
+title('O_2 concentration');
+% scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
 %scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
 
-subplot(212);
-hold on; title('CO_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+subplot(122);
+hold on;
+pdeplot(model,'XYData',C_0(length(nodes)+1:end));
+title('CO_2 concentration');
 %scatter3(-nodes(1,:), nodes(2,:), c(length(nodes)+1:end))
 
-%%
-fun = @(C) 1e5*( K*C - f + eval_nonlinear(mesh, C));
+%% 
+fun = @(C) 1e4*( K*C - f + eval_nonlinear(mesh, C));
 %%
 options = optimoptions('fsolve',...
-    'Display','iter','FunctionTolerance',1e-12, 'UseParallel', true);
+    'Display','iter','FunctionTolerance',1e-10, 'UseParallel', true);
 C = fsolve(fun, C_0, options );
 
 
