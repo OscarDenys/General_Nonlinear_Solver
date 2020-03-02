@@ -11,9 +11,6 @@
 
 using namespace std;
 
-// Headers 
-int ReadNumbers( const string & s, vector <float> & v );
-void import_matrix_from_txt_file(const char* filename_X, vector <float>& v, int& rows, int& cols);
 
 int main(){
     // loading X-coordinates from txt file

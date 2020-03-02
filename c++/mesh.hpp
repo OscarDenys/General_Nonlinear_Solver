@@ -24,12 +24,16 @@ class mesh{
         //  - the indices are given in clockwise direction around the edge.
         vector<int> edge;
 
+        //vector<vector<T>> 
+
     public:
     mesh(vector<float> Xpoints, vector<float> Ypoints, vector<int> triangles, vector<int> edge){
         triangles = triangles;
         Xpoints = Xpoints;
         Ypoints = Ypoints;
         edge = edge;
+
+
     }
     
 }; // end class mesh
