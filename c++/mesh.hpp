@@ -11,42 +11,34 @@ namespace std{
 class mesh{
 
     private:
-        vector<double> Xpoints;
-        vector<double> Ypoints;
+        vector<float> Xpoints;
+        vector<float> Ypoints;
 
-        // Structure triangles & edges:
-        //  one dimensional vector containing the indices of the points. 
-        //  for triangles each pair of three elements (index%3 = {0,1,2}) forms a triangle.
-        vector<double> triangles; 
-        vector<double> edge;
+        // Structure triangles
+        //  - one dimensional vector containing the indices of the Xpoints and Ypoints vectors. 
+        //  - each pair of three elements (index%3 = {0,1,2}) forms a triangle.
+        vector<int> triangles; 
+
+        // Structure triangles
+        //  - one dimensional vector containing the indices of the Xpoints and Ypoints vectors. 
+        //  - the indices are given in clockwise direction around the edge.
+        vector<int> edge;
 
     public:
-    mesh(vector<double> Xpoints, vector<double> Ypoints, vector<double> triangles, vector<double> edge){
+    mesh(vector<float> Xpoints, vector<float> Ypoints, vector<int> triangles, vector<int> edge){
         triangles = triangles;
         Xpoints = Xpoints;
         Ypoints = Ypoints;
         edge = edge;
-
-        //std::cout << "Xpoints size  = " << Xpoints.size() << std::endl;
-        //std::cout << "Ypoints size  = " << Ypoints.size() << std::endl;
-        
-
-        //std::vector<double> elements(triangles.size()*3);
-        //for (int i=0 ; i<triangles.size(); i++){
-        //    if (i%3 == 0){
-        //        double x = points(2*triangles(i));
-        //        double y = points(2*triangles(i)+1);
-        //        double edge = 
-        //    }
-        //}
     }
     
-}; //class mesh
+}; // end class mesh
 
 
 
 // Appends values from a string into a (row)vector and returns the number of elements in the vector (= #columns).
-int ReadNumbers( const string & s, vector <double> & v ) {
+template<class T>
+int ReadNumbers( const string & s, vector <T>& v ) {
     istringstream is( s );
     double n;
     //This loop, intuitively, means "keep reading values from is into n, and as long as a value can be read, continue looping." 
@@ -59,7 +51,8 @@ int ReadNumbers( const string & s, vector <double> & v ) {
 
 
 // Imports al the numbers from a txt file into a one dimensional vector.
-void import_matrix_from_txt_file(const char* filename_X, vector <double>& v, int& rows, int& cols){
+template<class T>
+void import_matrix_from_txt_file(const char* filename_X, vector <T>& v, int& rows, int& cols){
     
     ifstream file_X;
     string line;
@@ -104,4 +97,4 @@ void import_matrix_from_txt_file(const char* filename_X, vector <double>& v, int
 
 
 
-}// namespace std
+}// end namespace pear
