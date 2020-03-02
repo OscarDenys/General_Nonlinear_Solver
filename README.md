@@ -28,4 +28,9 @@ Project Mathematical Engineering
 
 ## Notes:
 
+## Why eigen?
+- Eigen comes with built-in and fast matrix products and linear matrix decompositions, whereas Armadillo needs to link to external BLAS/Lapack libraries for that.
+- Good online documentation
+- Good for large square sparse linear systems https://scicomp.stackexchange.com/questions/30941/which-c-linear-algebra-library-is-probably-the-fastest-on-solving-huge-sparse
+
 ## Interessante zaken voor presentatie (aan te vullen tijdens implementatie):
