@@ -3,23 +3,16 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include "mesh.hpp"
+//#ifndef "mesh.hpp"
+//#define "mesh.hpp"
+
 namespace std{
 
-
-
-//https://www.codeproject.com/Questions/210023/How-to-read-matrix-from-text-file-in-Cplusplus
-//http://www.cplusplus.com/doc/tutorial/files/
-
-class mesh{
-
-    private:
-        vector<double> Xpoints;
-        vector<double> Ypoints;
-        vector<double> triangles; // index in de puntenlijst
-        vector<double> edges;
-
-    public:
-    mesh(vector<double> Xpoints, vector<double> Ypoints, vector<double> triangles, vector<double> edges){
+    // constructor mesh object
+    mesh::mesh(vector<double> Xpoints, vector<double> Ypoints, vector<double> triangles, vector<double> edges):
+    //Xpoints_(0), Ypoints_(0), triangles_(0), edges_(0) doesnt fix class redefinition error
+    {
         triangles = triangles;
         Xpoints = Xpoints;
         Ypoints = Ypoints;
@@ -38,29 +31,7 @@ class mesh{
         //    }
         //}
     }
-};
-
-
-//class element{
-//
-//    public:
-//        int label;
-//        double x;
-//        double y;
-//        
-//    point(int label, double x, double y){
-//        label = label;
-//        x = x;
-//        y = y;
-//    }
-
-    // functie voor edge() -- bool
-               //voor neighbours() -- int vector
-
-//};
-
-
-
-
 
 }// namespace std
+
+//#endif
