@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include <vector>
+#include "constants.hpp"
 #include "sibren_functions.hpp"
 
 namespace pear{
