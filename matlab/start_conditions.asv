@@ -52,7 +52,7 @@ telements = tr.ConnectivityList';
 
 geometryFromMesh(model,tnodes,telements);   % create geometry
 clear tnodes telements tr pgon;
-mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.05);
+mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.25);
 
 figure(1);
 subplot(121); pdegplot(model,'EdgeLabels','on'); ylim([0 1]); axis off;
@@ -114,7 +114,7 @@ C = fsolve(fun, C_0, options );
 %% Plot result: 
 
 figure(2); clf;
-subplot(211); hold on; title('O_2 concentration');
+subplot(211); hold on; title('O_2 concentration, fval: '+fun(C_0);
 scatter3(nodes(1,:), nodes(2,:), C(1:length(nodes)));
 %scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
 
@@ -127,24 +127,25 @@ scatter3(nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
 %% Functions (load this before the rest...) 
 
 % Function used in iterative nonlinear solver: TODO should this be -f or +f?
-fun = @(C) 1e4*( K*C + f +eval_nonlinear(mesh, C));
+fun = @(C) ( K*C + f + eval_nonlinear(mesh, C));
 
 function stop = outfun(C_, optimValues, stats)
     global model nodes 
+    
     figure(2); clf;
     subplot(121); hold on;
     pdeplot(model,'XYData',C_(1:length(nodes)));
-    title(['O_2 concentration, current norm(fval): ', num2str(norm(optimValues.fval,2))]);
+    title('O_2 concentration, current fval: ' + optimValues.fval);
     % scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
     %scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
 
     subplot(122);
     hold on;
     pdeplot(model,'XYData',C_(length(nodes)+1:end));
-    title(['CO_2 concentration, current fval: ', num2str(norm(optimValues.fval,2))]);
+    title('CO_2 concentration, current fval: '+ optimValues.fval);
     
-    stop = true; 
-    if (norm(optimValues.fval,2) < .0000001)
+    stop = false; 
+    if (optimValues.fval < .01)
         stop = true;
     end
 
