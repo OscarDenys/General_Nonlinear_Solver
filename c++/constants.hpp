@@ -1,7 +1,7 @@
 #ifndef constants
 #define constants
 
-namespace pear {
+namespace std {
 
     // Setup --------------------------------------------------------------------
     float T_cel = 25;
@@ -45,6 +45,6 @@ namespace pear {
     // -----------------------------------------------------------------------------
 
 
-} // namespace pear
+} // namespace std
 
 #endif

@@ -7,6 +7,8 @@
 #include <cmath>
 #include <vector>
 
+typedef Eigen::Triplet<double> Trip;
+
 namespace std {
 
     // respiration kinetics: R - formula (3)
@@ -50,18 +52,25 @@ namespace std {
         return r_q*Ru + V_mfv / (1+ Cu/K_mfu);
     }
 
+    // ------------------------
+
     // line integral evaluation
 
-    void lineIntegral(mesh mesh, vector<double> const) {
+    void lineIntegral(mesh & myMesh, vector<Trip> & K, Eigen::VectorXd & f) {
         // create matrix K and vector b, where the line integral
         // equals (K*c + b)
 
-        int nbBoundaryNodes = mesh.getNbBoundaryNodes();
+        int nbBoundaryNodes = myMesh.getNbBoundaryNodes();
         vector<int> boundaryNodes(nbBoundaryNodes);
-        mesh.getBoundaryNodes(boundaryNodes);
+        myMesh.getBoundaryNodes(boundaryNodes);
 
-        for (int i = 0; i < nbBoundaryNodes; i++) {
+        int currentNode, prevNode, nextNode;
 
+        for (int i = 1; i < nbBoundaryNodes-1; i++) {
+            currentNode = boundaryNodes[i];
+            
+
+            K.push_back(Trip(i,j,val))
         }
     }
 
