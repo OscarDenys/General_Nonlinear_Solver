@@ -1,14 +1,16 @@
 #include <cassert>
 #include <cmath>
 #include <vector>
+#include <Eigen/SparseCore>
 #include "constants.hpp"
+#include "mesh.hpp"
 #include "sibren_functions.hpp"
 
 namespace std {
 
-void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<double> f){
+typedef Eigen::Triplet<double> T;
 
-  // Assert all elements in given K and f are zero.
+void integral1(mesh const &myMesh, std::vector<Eigen::Triplets<double>> &K){
 
 
   // nodes --> list met nodes van mesh (label, x, y)
@@ -27,16 +29,16 @@ void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<do
   std::vector<double> commonPart(2);
   double resultU;
   double resultV;
-  int nbNodes = originalMesh.getNbNodes(); // TODO check if this works;
+  int nbNodes = myMesh.getNbNodes(); // TODO check if this works;
 
-  for (int element = 0; element < originalMesh.getNbElements(); element++){
-    originalMesh.getElement(element, currentElement);
+  for (int element = 0; element < myMesh.getNbElements(); element++){
+    myMesh.getElement(element, currentElement);
     n1 = currentElement[0];
     n2 = currentElement[1];
     n3 = currentElement[2];
-    originalMesh.getNodeCoordinates(n1, P1);
-    originalMesh.getNodeCoordinates(n2, P2);
-    originalMesh.getNodeCoordinates(n3, P3);
+    myMesh.getNodeCoordinates(n1, P1);
+    myMesh.getNodeCoordinates(n2, P2);
+    myMesh.getNodeCoordinates(n3, P3);
 
     det_jac = P1[1]*P2[0] - P1[0]*P2[1] + P1[0]*P3[1] - P1[1]*P3[0] - P2[0]*P3[1] + P2[1]*P3[0]; // Bewerking op single prec floats opslaan in double precision float mag???
     temp = (P1[0] + P2[0] + P3[0])/(6*det_jac);
@@ -56,21 +58,21 @@ void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<do
     // the part with sigma_z in [1]...
     applySigmaAndAddCommonPart(result, commonPart);
     // result is vector with [result_u, result_v]
-    K[n1-1,n1-1] = K[n1-1,n1-1] + temp*result[0];
-    K[nbNodes+n1-1,nbNodes+n1-1] = K[nbNodes+n1-1,nbNodes+n1-1] + temp*result[1];
+    K.push_back(T(n1-1, n1-1, temp*result[0]));
+    K.push_back(T(nbNodes+n1-1, nbNodes+n1-1, temp*result[1]));
 
 
     commonPart[0] = -(P3[0]-P2[0])*(P3[0]-P1[0]);
     commonPart[1] = (P2[1]-P3[1])*(P3[1]-P1[1]);
     applySigmaAndAddCommonPart(result, commonPart);
-    K[n1-1,n2-1] = K[n1-1,n2-1] + temp*result[0];
-    K[nbNodes+n1-1,nbNodes+n2-1] = K[nbNodes+n1-1,nbNodes+n2-1] + temp*result[1];
+    K.push_back(T(n1-1, n2-1, temp*result[0]));
+    K.push_back(T(nbNodes+n1-1, nbNodes+n2-1, temp*result[1]));
 
     commonPart[0] = (P3[0]-P2[0])*(P2[0]-P1[0]);
     commonPart[1] = -(P2[1]-P3[1])*(P2[1]-P1[1]);
     applySigmaAndAddCommonPart(result, commonPart);
-    K[n1-1,n3-1] = K[n1-1,n3-1] + temp*result[0];
-    K[nbNodes+n1-1,nbNodes+n3-1] = K[nbNodes+n1-1,nbNodes+n3-1] + temp*result[1];
+    K.push_back(T(n1-1, n3-1, temp*result[0]));
+    K.push_back(T(nbNodes+n1-1, nbNodes+n3-1, temp*result[1]));
 
 
 
@@ -78,48 +80,45 @@ void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<do
     commonPart[0] = -(P3[0]-P2[0])*(P3[0]-P1[0]);
     commonPart[1] = (P2[1]-P3[1])*(P3[1]-P1[1]);
     applySigmaAndAddCommonPart(result, commonPart);
-    K[n2-1,n1-1] = K[n2-1,n1-1] + temp*result[0];
-    K[nbNodes+n2-1,nbNodes+n1-1] = K[nbNodes+n2-1,nbNodes+n1-1] + temp*result[1];
+    K.push_back(T(n2-1, n1-1, temp*result[0]));
+    K.push_back(T(nbNodes+n2-1, nbNodes+n1-1, temp*result[1]));
 
     commonPart[0] = pow(P3[0]-P1[0], 2);
     commonPart[1] = pow(P3[1]-P1[1], 2);
     applySigmaAndAddCommonPart(result, commonPart);
-    K[n2-1,n2-1] = K[n2-1,n2-1] + temp*result[0];
-    K[nbNodes+n2-1,nbNodes+n2-1] = K[nbNodes+n2-1,nbNodes+n2-1] + temp*result[1];
+    K.push_back(T(n2-1, n2-1, temp*result[0]));
+    K.push_back(T(nbNodes+n2-1, nbNodes+n2-1, temp*result[1))];
 
     commonPart[0] = -(P3[0]-P1[0])*(P2[0]-P1[0]);
     commonPart[1] = -(P3[1]-P1[1])*(P2[1]-P1[1]);
     applySigmaAndAddCommonPart(result, commonPart);
-    K[n2-1,n3-1] = K[n2-1,n3-1] + temp*result[0];
-    K[nbNodes+n2-1,nbNodes+n3-1] = K[nbNodes+n2-1,nbNodes+n3-1] + temp*result[1];
+    K.push_back(T(n2-1, n3-1, temp*result[0]));
+    K.push_back(T(nbNodes+n2-1, nbNodes+n3-1, temp*result[1]));
 
 
       // Node 3
     commonPart[0] = (P3[0]-P2[0])*(P2[0]-P1[0]);
     commonPart[1] = -(P2[1]-P3[1])*(P2[1]-P1[1]);
     applySigmaAndAddCommonPart(result, commonPart);
-    K[n3-1,n1-1] = K[n3-1,n1-1] + temp*result[0];
-    K[nbNodes+n3-1,nbNodes+n1-1] = K[nbNodes+n3-1,nbNodes+n1-1] + temp*result[1];
+    K.push_back(T(n3-1, n1-1, temp*result[0]));
+    K.push_back(T(nbNodes+n3-1, nbNodes+n1-1, temp*result[1]));
 
     commonPart[0] = -(P3[0]-P1[0])*(P2[0]-P1[0]);
     commonPart[1] = -(P3[1]-P1[1])*(P2[1]-P1[1]);
     applySigmaAndAddCommonPart(result, commonPart);
-    K[n3-1,n2-1] = K[n3-1,n2-1] + temp*result[0];
-    K[nbNodes+n3-1,nbNodes+n2-1] = K[nbNodes+n3-1,nbNodes+n2-1] + temp*result[1];
+    K.push_back(T(n3-1, n2-1, temp*result[0]));
+    K.push_back(T(nbNodes+n3-1, nbNodes+n2-1, temp*result[1]));
 
     commonPart[0] = pow(P2[0]-P1[0], 2);
     commonPart[1] = pow(P2[1]-P1[1], 2);
     applySigmaAndAddCommonPart(result, commonPart);
-    K[n3-1,n3-1] = K[n3-1,n3-1] + temp*result[0];
-    K[nbNodes+n3-1,nbNodes+n3-1] = K[nbNodes+n3-1,nbNodes+n3-1] + temp*result[1];
-
-
+    K.push_back(T(n3-1, n3-1, temp*result[0]));
+    K.push_back(T(nbNodes+n3-1, nbNodes+n3-1, temp*result[1]));
   }
-
-
+  return;
 }
 
-void applySigmaAndAddCommonPart(std::vector<double> result, std::vector<double> commonPart){
+void applySigmaAndAddCommonPart(std::vector<double> &result, std::vector<double> const &commonPart){
   // TODO: volgens wiskundige afleiding moet sigma_uz maal r gedeelte en andersom, dit is niet hoe wij het in MATLAB doen!!!
   result[0] = sigma_uz*commonPart[0] + sigma_ur*commonPart[1];
   result[1] = sigma_vz*commonPart[0] + sigma_vr*commonPart[1];
