@@ -40,7 +40,26 @@ class mesh{
         //    }
         //}
     }
-    
+
+    int getNbElements() {
+        
+    }
+
+    void getElement(int elementIndex, vector<int> nodes) {
+        // return nodes indices for given element index
+
+    } 
+
+    void getNodeCoordinates(int nodeIndex, vector<float> coordinates) {
+
+
+    }
+
+    void getBoundaryNodes(vector<int> nodes, boolean boundaryFlag = false) {
+        // return nodes indices boundary nodes in the correct order
+        // Gamma_1 if boundaryFlag = true, else Gamma_2
+    } 
+
 }; //class mesh
 
 }// namespace std
