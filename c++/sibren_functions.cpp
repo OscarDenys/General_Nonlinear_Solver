@@ -4,11 +4,12 @@
 #include "constants.hpp"
 #include "sibren_functions.hpp"
 
-namespace pear{
+namespace std {
 
-void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<double> f, std::vector<float> setup){
+void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<double> f){
 
   // Assert all elements in given K and f are zero.
+
 
   // nodes --> list met nodes van mesh (label, x, y)
   // elements --> list met elements van mesh (node1, node2, node3, boundary(boolean))
@@ -29,13 +30,13 @@ void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<do
   double resultV;
   int nbNodes = sqrt(K.size())/2; // TODO check if this works;
 
-  for (int element = 0; element < elements.size(); element++){
-    currentElement = elements[element];
+  for (int element = 0; element < originalMesh.getNbElements(); element++){
+    currentElement = getElement(element);
     isBoundary = currentElement[3];
     n1 = currentElement[0];
     n2 = currentElement[1];
     n3 = currentElement[2];
-    P1 = nodes[n1];
+    P1 = getNodes[n1];
     P2 = nodes[n2];
     P3 = nodes[n3];
 
@@ -114,21 +115,16 @@ void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<do
     K[n3-1,n3-1] = K[n3-1,n3-1] + temp*result[0];
     K[nbNodes+n3-1,nbNodes+n3-1] = K[nbNodes+n3-1,nbNodes+n3-1] + temp*result[1];
 
-    // -----------------------------------------------------------------------------------------
 
   }
 
 
 }
 
-void applySigmaAndAddCommonPart(std::vector<double> result(2), std::vector<double> commonPart(2)){
+void applySigmaAndAddCommonPart(std::vector<double> result, std::vector<double> commonPart){
   // TODO: volgens wiskundige afleiding moet sigma_uz maal r gedeelte en andersom, dit is niet hoe wij het in MATLAB doen!!!
-  double sigma_ur = ;
-  double sigma_uz = ;
-  double sigma_vr = ;
-  double sigma_vz = ;
-  result[0] = sigma_ur*commonPart[0] + sigma_uz*commonPart[1];
-  result[1] = sigma_vr*commonPart[0] + sigma_vz*commonPart[1];
+  result[0] = sigma_uz*commonPart[0] + sigma_ur*commonPart[1];
+  result[1] = sigma_vz*commonPart[0] + sigma_vr*commonPart[1];
 
   return;
 }
