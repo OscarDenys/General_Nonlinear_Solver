@@ -60,17 +60,55 @@ namespace std {
         // create matrix K and vector b, where the line integral
         // equals (K*c + b)
 
+        int M = myMesh.getNbNodes();
         int nbBoundaryNodes = myMesh.getNbBoundaryNodes();
         vector<int> boundaryNodes(nbBoundaryNodes);
         myMesh.getBoundaryNodes(boundaryNodes);
 
-        int currentNode, prevNode, nextNode;
+        vector<float> nodeCoords(2);
+        int currNode, prevNode, nextNode;
+        double r_curr, r_prev, r_next, k_prev, k_next;
 
         for (int i = 1; i < nbBoundaryNodes-1; i++) {
-            currentNode = boundaryNodes[i];
-            
 
-            K.push_back(Trip(i,j,val))
+            // node indices
+            currNode = boundaryNodes[i];
+            prevNode = boundaryNodes[i-1];
+            nextNode = boundaryNodes[i+1];
+            
+            myMesh.getNodeCoordinates(prevNode, nodeCoords);
+            r_prev = nodeCoords[0];
+            k_prev = nodeCoords[1];     // temporarily store z-value here
+
+            myMesh.getNodeCoordinates(nextNode, nodeCoords);
+            r_next = nodeCoords[0];
+            k_next = nodeCoords[1];     // temporarily store z-value here
+
+            myMesh.getNodeCoordinates(currNode, nodeCoords);
+            r_curr = nodeCoords[0];
+
+            k_prev = sqrt( pow(r_prev-r_curr,2) + pow(k_prev-nodeCoords[1],2) );
+            k_next = sqrt( pow(r_next-r_curr,2) + pow(k_next-nodeCoords[1],2) );
+
+            K.push_back(Trip(currNode,prevNode, rho_u* k_prev*(r_curr+r_prev)/12 ));
+            K.push_back(Trip(currNode,currNode, 
+                            rho_u* (k_prev*(3*r_curr+r_prev)/12 + k_next*(3*r_curr+r_next)/12) ) );
+            K.push_back(Trip(currNode,nextNode, rho_u* k_next*(r_curr+r_next)/12 ));
+
+            f(currNode) -= rho_u* C_uamb * (k_prev*(2*r_curr+r_prev)/6 + k_next*(2*r_curr+r_next)/6);
+
+            // node indices for v coefficients 
+            currNode += M;
+            prevNode += M;
+            nextNode += M;
+
+            K.push_back(Trip(currNode,prevNode, rho_v* k_prev*(r_curr+r_prev)/12 ));
+            K.push_back(Trip(currNode,currNode, 
+                            rho_v* (k_prev*(3*r_curr+r_prev)/12 + k_next*(3*r_curr+r_next)/12) ) );
+            K.push_back(Trip(currNode,nextNode, rho_v* k_next*(r_curr+r_next)/12 ));
+
+            f(currNode) -= rho_v* C_vamb * (k_prev*(2*r_curr+r_prev)/6 + k_next*(2*r_curr+r_next)/6);
+
         }
     }
 
