@@ -15,8 +15,7 @@ void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<do
   // elements --> list met elements van mesh (node1, node2, node3, boundary(boolean))
 
 
-  std::vector<int> currentElement(4);
-  boolean isBoundary;
+  std::vector<int> currentElement(3);
   std::vector<float> P1(2);
   std::vector<float> P2(2);
   std::vector<float> P3(2);
@@ -28,17 +27,16 @@ void createLinearSystem(mesh originalMesh, std::vector<double> K, std::vector<do
   std::vector<double> commonPart(2);
   double resultU;
   double resultV;
-  int nbNodes = sqrt(K.size())/2; // TODO check if this works;
+  int nbNodes = originalMesh.getNbNodes(); // TODO check if this works;
 
   for (int element = 0; element < originalMesh.getNbElements(); element++){
-    currentElement = getElement(element);
-    isBoundary = currentElement[3];
+    originalMesh.getElement(element, currentElement);
     n1 = currentElement[0];
     n2 = currentElement[1];
     n3 = currentElement[2];
-    P1 = getNodes[n1];
-    P2 = nodes[n2];
-    P3 = nodes[n3];
+    originalMesh.getNodeCoordinates(n1, P1);
+    originalMesh.getNodeCoordinates(n2, P2);
+    originalMesh.getNodeCoordinates(n3, P3);
 
     det_jac = P1[1]*P2[0] - P1[0]*P2[1] + P1[0]*P3[1] - P1[1]*P3[0] - P2[0]*P3[1] + P2[1]*P3[0]; // Bewerking op single prec floats opslaan in double precision float mag???
     temp = (P1[0] + P2[0] + P3[0])/(6*det_jac);
