@@ -9,10 +9,12 @@
 #include <sstream>
 #include "mesh.hpp"
 #include "mesh.cpp"
+#include "sibren_functions.hpp"
+
 
 using namespace std;
 
-// Headers 
+// Headers
 int ReadNumbers( const string & s, vector <double> & v );
 void import_matrix_from_txt_file(const char* filename_X, vector <double>& v, int& rows, int& cols);
 
@@ -28,7 +30,7 @@ int main(){
     int ynbpoints=0;
     int ypointRows=0;
     import_matrix_from_txt_file("Ypoints.txt",Ypoints,ypointRows,ynbpoints);
-    
+
     // loading point indices of triangles from txt file
     vector <double> triangles;
     int triangleRows=0;
@@ -52,7 +54,7 @@ int main(){
 int ReadNumbers( const string & s, vector <double> & v ) {
     istringstream is( s );
     double n;
-    //This loop, intuitively, means "keep reading values from is into n, and as long as a value can be read, continue looping." 
+    //This loop, intuitively, means "keep reading values from is into n, and as long as a value can be read, continue looping."
     while( is >> n ) {
         // Adds a new element at the end of the vector, after its current last element.
         v.push_back( n );
@@ -63,16 +65,16 @@ int ReadNumbers( const string & s, vector <double> & v ) {
 
 // Imports al the numbers from a txt file into a one dimensional vector.
 void import_matrix_from_txt_file(const char* filename_X, vector <double>& v, int& rows, int& cols){
-    
+
     ifstream file_X;
     string line;
-    
+
     file_X.open(filename_X);
     if (file_X.is_open()) {
         int i=0;
         getline(file_X, line);
-        
-        
+
+
         cols =ReadNumbers( line, v );
         cout << "cols:" << cols << endl;
 
@@ -83,18 +85,18 @@ void import_matrix_from_txt_file(const char* filename_X, vector <double>& v, int
             getline(file_X, line);
             ReadNumbers( line, v );
     }
-        
+
         rows=i;
         cout << "rows :" << rows << endl;
         if(rows >32766) cout<< "N must be smaller than MAX_INT";
-        
+
         file_X.close();
     }
 
     else{
         cout << "file open failed";
     }
-    
+
     // Print out the imported vector.
     cout << "v:" << endl;
     for (int i=0;i<rows;i++){
@@ -104,4 +106,3 @@ void import_matrix_from_txt_file(const char* filename_X, vector <double>& v, int
         cout << endl;
     }
 }
-
