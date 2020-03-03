@@ -1,11 +1,15 @@
 #ifndef sem_functions_hpp
 #define sem_functions_hpp
 #include "constants.hpp"
+#include "mesh.hpp"
+#include <Eigen/SparseCore>
 #include <cassert>
 #include <cmath>
 #include <vector>
 
-namespace pear {
+namespace std {
+
+    // respiration kinetics: R - formula (3)
 
     void evaluateRespiration(int nodeIndex, std::vector<double> prevSol, double Ru, double Rv) {
         // evaluate the respiratory function (formula (3) of assignement) on the node with given index
@@ -46,7 +50,22 @@ namespace pear {
         return r_q*Ru + V_mfv / (1+ Cu/K_mfu);
     }
 
-} // namespace pear
+    // line integral evaluation
+
+    void lineIntegral(mesh mesh, vector<double> const) {
+        // create matrix K and vector b, where the line integral
+        // equals (K*c + b)
+
+        int nbBoundaryNodes = mesh.getNbBoundaryNodes();
+        vector<int> boundaryNodes(nbBoundaryNodes);
+        mesh.getBoundaryNodes(boundaryNodes);
+
+        for (int i = 0; i < nbBoundaryNodes; i++) {
+
+        }
+    }
+
+} // namespace std
 
 
 #endif	
