@@ -55,11 +55,20 @@ class mesh{
 
     }
 
+    int getNbBoundaryNodes() {
+        
+    }
+
     void getBoundaryNodes(vector<int> nodes, boolean boundaryFlag = false) {
         // return nodes indices boundary nodes in the correct order
         // Gamma_1 if boundaryFlag = true, else Gamma_2
     } 
 
+    int getNbNodes() {
+
+    }
+
+    
 }; //class mesh
 
 }// namespace std
