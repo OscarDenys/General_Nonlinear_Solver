@@ -9,7 +9,7 @@ namespace std{
 
 
 
-const class mesh{
+class mesh{
 
     private:
         vector<float> Xpoints_;
@@ -91,8 +91,7 @@ const class mesh{
     }
 
 
-}; //class mesh
-
+}; // end class mesh
 
 
 // Appends values from a string into a (row)vector and returns the number of elements in the vector (= #columns).
@@ -155,5 +154,34 @@ void import_matrix_from_txt_file(const char* filename_X, vector <T>& v, int& row
 }
 
 
+// Load mesh from text files.
+void loadMesh() {
+    // loading X-coordinates from txt file
+    vector <float> Xpoints;
+    int xnbpoints=0;
+    int xpointRows=0;
+    import_matrix_from_txt_file("Xpoints.txt",Xpoints,xpointRows,xnbpoints);
 
-}// end namespace pear
+    // loading Y-coordinates from txt file
+    vector <float> Ypoints;
+    int ynbpoints=0;
+    int ypointRows=0;
+    import_matrix_from_txt_file("Ypoints.txt",Ypoints,ypointRows,ynbpoints);
+    
+    // loading point indices of triangles from txt file
+    vector <int> triangles;
+    int triangleRows=0;
+    int nbtriangles=0;
+    import_matrix_from_txt_file("triangleLabels.txt",triangles,triangleRows,nbtriangles);
+
+    // loading point indices of edge from txt file
+    vector <int> edge;
+    int edgeRows=0;
+    int nbedge=0;
+    import_matrix_from_txt_file("edgeLabels.txt",edge,edgeRows,nbedge);
+
+    std::mesh myMesh(Xpoints, Ypoints, triangles, edge);
+}
+
+
+}// end namespace std

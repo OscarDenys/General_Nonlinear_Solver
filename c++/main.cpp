@@ -16,33 +16,9 @@ using namespace std;
 
 int main(){
 
-  // TODO OSCAR: maak hier 1 functie van die alles inlaadt...
+    std::loadMesh();
 
-    // loading X-coordinates from txt file
-    vector <float> Xpoints;
-    int xnbpoints=0;
-    int xpointRows=0;
-    std::import_matrix_from_txt_file("Xpoints.txt",Xpoints,xpointRows,xnbpoints);
 
-    // loading Y-coordinates from txt file
-    vector <float> Ypoints;
-    int ynbpoints=0;
-    int ypointRows=0;
-    std::import_matrix_from_txt_file("Ypoints.txt",Ypoints,ypointRows,ynbpoints);
-    
-    // loading point indices of triangles from txt file
-    vector <int> triangles;
-    int triangleRows=0;
-    int nbtriangles=0;
-    std::import_matrix_from_txt_file("triangleLabels.txt",triangles,triangleRows,nbtriangles);
-
-    // loading point indices of edge from txt file
-    vector <int> edges;
-    int edgeRows=0;
-    int nbedge=0;
-    std::import_matrix_from_txt_file("edgeLabels.txt",edges,edgeRows,nbedge);
-
-    std::mesh myMesh(Xpoints, Ypoints, triangles, edges);
 // --------------------------------------------------------------------
 
     // (if this code is in your way, put it in the "sem_functions" file)
