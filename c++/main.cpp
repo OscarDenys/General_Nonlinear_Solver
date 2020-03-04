@@ -48,6 +48,20 @@ int main(){
 
     std::mesh myMesh(Xpoints, Ypoints, triangles, edges);
 // --------------------------------------------------------------------
+
+    // (if this code is in your way, put it in the "sem_functions" file)
+    // creation of small 1-triangle mesh to test on
+    //
+    //      |\
+    //      |_\
+    //
+    vector<double> Xpoints{0,0,0.5};
+    vector<double> Ypoints{0,1,0};
+    vector<int> triangles{1,2,3};
+    vector<int> edge{2,3,1}
+    mesh testMesh(Xpoints,Ypoints,triangles,edge);
+    // -----
+
   // Outline:
     // K*C + f + H(c) = 0 (nonlinear system)
     // start: solve for C: (K+K_lin)C = -(f+f_lin)

@@ -17,11 +17,11 @@ const class mesh{
         // Structure triangles & edges:
         //  one dimensional vector containing the indices of the points. 
         //  for triangles each pair of three elements (index%3 = {0,1,2}) forms a triangle.
-        vector<double> triangles; 
-        vector<double> edge;
+        vector<int> triangles; 
+        vector<int> edge;
 
     public:
-    mesh(vector<double> Xpoints, vector<double> Ypoints, vector<double> triangles, vector<double> edge){
+    mesh(vector<double> Xpoints, vector<double> Ypoints, vector<int> triangles, vector<int> edge){
         triangles = triangles;
         Xpoints = Xpoints;
         Ypoints = Ypoints;
