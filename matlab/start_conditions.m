@@ -50,7 +50,7 @@ tr = triangulation(pgon);
 tnodes = [x; y];
 telements = tr.ConnectivityList';      
 
-geometryFromMesh(model,tnodes,telements);   % create geometry
+geometryFromMesh(model,tnodes,telements);   % create 
 clear tnodes telements tr pgon;
 mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.05);
 
@@ -81,11 +81,15 @@ global nodes
 nodes = mesh.Nodes;
 % Get stiffness matrix K and constant term f:
 [K, K_lin, f, f_lin] = create_stiffness(mesh);
+f_lin_gross = create_lin_int2(mesh);
 
 
 % Start iterative solver: 
 % First solution: 
 C_0 = (K+K_lin) \ -(f+f_lin);
+%C_0 = K\-(f+f_lin_gross);
+%C_0 = K_lin\-(f+f_lin);
+%C_0 = K\-f;
 
 % C_0(C_0<0) = -20000;
 
@@ -127,7 +131,7 @@ scatter3(nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
 %% Functions (load this before the rest...) 
 
 % Function used in iterative nonlinear solver: TODO should this be -f or +f?
-fun = @(C) 1e4*( K*C + f +eval_nonlinear(mesh, C));
+fun = @(C) 1e4*( K*C + f + eval_nonlinear(mesh, C));
 
 function stop = outfun(C_, optimValues, stats)
     global model nodes 
