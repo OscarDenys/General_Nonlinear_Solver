@@ -6,6 +6,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
     nb_elements_total = length(mesh.Elements(1,:));
 
     boundary_nodes = [1 42:-1:19 2]; % Hardcode Hmin = 0.05
+    %boundary_nodes = [1 8:-1:5 2]; % Hardcode Hmin = 0.25
     
     % all constants with prefix lin_ are used for the linearised second
     % integral
@@ -124,9 +125,9 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
         F2 = det_jac* (lin_k*lin_alpha*r_q + lin_kappa*lin_delta)* (P1(1) + 2*P2(1) + P3(1));
         F3 = det_jac* (lin_k*lin_alpha*r_q + lin_kappa*lin_delta)* (P1(1) + P2(1) + 2*P3(1));
 
-        f_lin(n1_) = f_lin(n1_) + F1;
-        f_lin(n2_) = f_lin(n2_) + F2;
-        f_lin(n3_) = f_lin(n3_) + F3;
+        f_lin(n1_) = f_lin(n1_) - F1;
+        f_lin(n2_) = f_lin(n2_) - F2;
+        f_lin(n3_) = f_lin(n3_) - F3;
         
         % part linear in c
         elem_stiff(1,1) = (6*P1(1) + 2*P2(1) + 2*P3(1)) *det_jac;
@@ -139,25 +140,25 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
         elem_stiff(3,2) = (  P1(1) + 2*P2(1) + 2*P3(1)) *det_jac;
         elem_stiff(3,3) = (2*P1(1) + 2*P2(1) + 6*P3(1)) *det_jac;
         
-        stiffness_matrix_lin(n1_,n1) = stiffness_matrix_lin(n1_,n1) + elem_stiff(1,1) *(lin_k*lin_beta*r_q-lin_kappa);
-        stiffness_matrix_lin(n1_,n2) = stiffness_matrix_lin(n1_,n2) + elem_stiff(1,2) *(lin_k*lin_beta*r_q-lin_kappa);
-        stiffness_matrix_lin(n1_,n3) = stiffness_matrix_lin(n1_,n3) + elem_stiff(1,3) *(lin_k*lin_beta*r_q-lin_kappa);
-        stiffness_matrix_lin(n2_,n1) = stiffness_matrix_lin(n2_,n1) + elem_stiff(2,1) *(lin_k*lin_beta*r_q-lin_kappa);
-        stiffness_matrix_lin(n2_,n2) = stiffness_matrix_lin(n2_,n2) + elem_stiff(2,2) *(lin_k*lin_beta*r_q-lin_kappa);
-        stiffness_matrix_lin(n2_,n3) = stiffness_matrix_lin(n2_,n3) + elem_stiff(2,3) *(lin_k*lin_beta*r_q-lin_kappa);
-        stiffness_matrix_lin(n3_,n1) = stiffness_matrix_lin(n3_,n1) + elem_stiff(3,1) *(lin_k*lin_beta*r_q-lin_kappa);
-        stiffness_matrix_lin(n3_,n2) = stiffness_matrix_lin(n3_,n2) + elem_stiff(3,2) *(lin_k*lin_beta*r_q-lin_kappa);
-        stiffness_matrix_lin(n3_,n3) = stiffness_matrix_lin(n3_,n3) + elem_stiff(3,3) *(lin_k*lin_beta*r_q-lin_kappa);
+        stiffness_matrix_lin(n1_,n1) = stiffness_matrix_lin(n1_,n1) - elem_stiff(1,1) *(lin_k*lin_beta*r_q-lin_kappa);
+        stiffness_matrix_lin(n1_,n2) = stiffness_matrix_lin(n1_,n2) - elem_stiff(1,2) *(lin_k*lin_beta*r_q-lin_kappa);
+        stiffness_matrix_lin(n1_,n3) = stiffness_matrix_lin(n1_,n3) - elem_stiff(1,3) *(lin_k*lin_beta*r_q-lin_kappa);
+        stiffness_matrix_lin(n2_,n1) = stiffness_matrix_lin(n2_,n1) - elem_stiff(2,1) *(lin_k*lin_beta*r_q-lin_kappa);
+        stiffness_matrix_lin(n2_,n2) = stiffness_matrix_lin(n2_,n2) - elem_stiff(2,2) *(lin_k*lin_beta*r_q-lin_kappa);
+        stiffness_matrix_lin(n2_,n3) = stiffness_matrix_lin(n2_,n3) - elem_stiff(2,3) *(lin_k*lin_beta*r_q-lin_kappa);
+        stiffness_matrix_lin(n3_,n1) = stiffness_matrix_lin(n3_,n1) - elem_stiff(3,1) *(lin_k*lin_beta*r_q-lin_kappa);
+        stiffness_matrix_lin(n3_,n2) = stiffness_matrix_lin(n3_,n2) - elem_stiff(3,2) *(lin_k*lin_beta*r_q-lin_kappa);
+        stiffness_matrix_lin(n3_,n3) = stiffness_matrix_lin(n3_,n3) - elem_stiff(3,3) *(lin_k*lin_beta*r_q-lin_kappa);
         
-        stiffness_matrix_lin(n1_,n1_) = stiffness_matrix_lin(n1_,n1_) + elem_stiff(1,1) *lin_gamma*lin_k*r_q;
-        stiffness_matrix_lin(n1_,n2_) = stiffness_matrix_lin(n1_,n2_) + elem_stiff(1,2) *lin_gamma*lin_k*r_q;
-        stiffness_matrix_lin(n1_,n3_) = stiffness_matrix_lin(n1_,n3_) + elem_stiff(1,3) *lin_gamma*lin_k*r_q;
-        stiffness_matrix_lin(n2_,n1_) = stiffness_matrix_lin(n2_,n1_) + elem_stiff(2,1) *lin_gamma*lin_k*r_q;
-        stiffness_matrix_lin(n2_,n2_) = stiffness_matrix_lin(n2_,n2_) + elem_stiff(2,2) *lin_gamma*lin_k*r_q;
-        stiffness_matrix_lin(n2_,n3_) = stiffness_matrix_lin(n2_,n3_) + elem_stiff(2,3) *lin_gamma*lin_k*r_q;
-        stiffness_matrix_lin(n3_,n1_) = stiffness_matrix_lin(n3_,n1_) + elem_stiff(3,1) *lin_gamma*lin_k*r_q;
-        stiffness_matrix_lin(n3_,n2_) = stiffness_matrix_lin(n3_,n2_) + elem_stiff(3,2) *lin_gamma*lin_k*r_q;
-        stiffness_matrix_lin(n3_,n3_) = stiffness_matrix_lin(n3_,n3_) + elem_stiff(3,3) *lin_gamma*lin_k*r_q;
+        stiffness_matrix_lin(n1_,n1_) = stiffness_matrix_lin(n1_,n1_) - elem_stiff(1,1) *lin_gamma*lin_k*r_q;
+        stiffness_matrix_lin(n1_,n2_) = stiffness_matrix_lin(n1_,n2_) - elem_stiff(1,2) *lin_gamma*lin_k*r_q;
+        stiffness_matrix_lin(n1_,n3_) = stiffness_matrix_lin(n1_,n3_) - elem_stiff(1,3) *lin_gamma*lin_k*r_q;
+        stiffness_matrix_lin(n2_,n1_) = stiffness_matrix_lin(n2_,n1_) - elem_stiff(2,1) *lin_gamma*lin_k*r_q;
+        stiffness_matrix_lin(n2_,n2_) = stiffness_matrix_lin(n2_,n2_) - elem_stiff(2,2) *lin_gamma*lin_k*r_q;
+        stiffness_matrix_lin(n2_,n3_) = stiffness_matrix_lin(n2_,n3_) - elem_stiff(2,3) *lin_gamma*lin_k*r_q;
+        stiffness_matrix_lin(n3_,n1_) = stiffness_matrix_lin(n3_,n1_) - elem_stiff(3,1) *lin_gamma*lin_k*r_q;
+        stiffness_matrix_lin(n3_,n2_) = stiffness_matrix_lin(n3_,n2_) - elem_stiff(3,2) *lin_gamma*lin_k*r_q;
+        stiffness_matrix_lin(n3_,n3_) = stiffness_matrix_lin(n3_,n3_) - elem_stiff(3,3) *lin_gamma*lin_k*r_q;
         
         
 
@@ -236,6 +237,6 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
     K = stiffness_matrix;
     K_lin = stiffness_matrix_lin;
     f = b;
-    f_lin = f + f_lin;
+    f_lin = f_lin;
 end
 

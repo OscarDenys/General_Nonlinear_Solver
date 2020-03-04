@@ -26,6 +26,21 @@ Project Mathematical Engineering
 - 20/03 (8) Buffer
 - 25/03 (9) Evaluatie + presentatie
 
+
+Huidig: 
+- 28/02 wiskundige afleiding Latex -> fouten verwijderen
+- 28/02 Matlab oplossing verifiëren
+- 04/03 implementatie C++ afwerken (nonlin solver, data export)
+        vergelijking met Matlab
+- 07/03 test op voorgestelde scenario's
+- 
+     
+        
 ## Notes:
+
+## Why eigen?
+- Eigen comes with built-in and fast matrix products and linear matrix decompositions, whereas Armadillo needs to link to external BLAS/Lapack libraries for that.
+- Good online documentation
+- Good for large square sparse linear systems https://scicomp.stackexchange.com/questions/30941/which-c-linear-algebra-library-is-probably-the-fastest-on-solving-huge-sparse
 
 ## Interessante zaken voor presentatie (aan te vullen tijdens implementatie):

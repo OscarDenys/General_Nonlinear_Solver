@@ -8,7 +8,7 @@ namespace std{
 
 
 
-class mesh{
+const class mesh{
 
     private:
         vector<float> Xpoints;
@@ -35,8 +35,36 @@ class mesh{
 
 
     }
-    
-}; // end class mesh
+
+    const int getNbElements() {
+        
+    }
+
+    const void getElement(int elementIndex, vector<int> nodes) {
+        // return node indices for given element index
+
+    } 
+
+    const void getNodeCoordinates(int nodeIndex, vector<float> coordinates) {
+
+
+    }
+
+    const int getNbBoundaryNodes() {
+        
+    }
+
+    const void getBoundaryNodes(vector<int> nodes, boolean boundaryFlag = false) {
+        // return nodes indices boundary nodes in the correct order
+        // Gamma_1 if boundaryFlag = true, else Gamma_2
+    } 
+
+    const int getNbNodes() {
+
+    }
+
+
+}; //class mesh
 
 
 
