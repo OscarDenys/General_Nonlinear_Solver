@@ -147,10 +147,10 @@ function stop = outfun(C_, optimValues, stats)
     pdeplot(model,'XYData',C_(length(nodes)+1:end));
     title(['CO_2 concentration, current fval: ', num2str(norm(optimValues.fval,2))]);
     
-    stop = true; 
-    if (norm(optimValues.fval,2) < .0000001)
-        stop = true;
-    end
+    stop = false; 
+%     if (norm(optimValues.fval,2) < .0000001)
+%         stop = true;
+%     end
 
 end
 
