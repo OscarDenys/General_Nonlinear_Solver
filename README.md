@@ -26,6 +26,16 @@ Project Mathematical Engineering
 - 20/03 (8) Buffer
 - 25/03 (9) Evaluatie + presentatie
 
+
+Huidig: 
+- 28/02 wiskundige afleiding Latex -> fouten verwijderen
+- 28/02 Matlab oplossing verifiëren
+- 04/03 implementatie C++ afwerken (nonlin solver, data export)
+        vergelijking met Matlab
+- 07/03 test op voorgestelde scenario's
+- 
+     
+        
 ## Notes:
 
 ## Why eigen?
