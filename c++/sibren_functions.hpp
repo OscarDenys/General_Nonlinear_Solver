@@ -5,6 +5,8 @@
 #include <vector>
 #include "Eigen/SparseCore"
 
+  // TODO: remove this file
+
 namespace std {
 
   void integral1(mesh const &myMesh, std::vector<Eigen::Triplet<double>> &K);
@@ -12,13 +14,6 @@ namespace std {
   void integral2nonlinear(mesh & myMesh, Eigen::VectorXd &H, Eigen::VectorXd &C);
 
 }
-
-
-
-
-
-
-
 
 
 #endif

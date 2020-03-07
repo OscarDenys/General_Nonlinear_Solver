@@ -8,21 +8,15 @@
 #include <iostream>
 #include <sstream>
 #include "mesh.hpp"
-#include "sibren_functions.hpp"
-#include "sem_functions.hpp"
+#include "integrals.hpp"
 #include "Eigen/SparseCore"
+#include "Eigen/SparseCholesky"
 
 
 using namespace std;
 
 
 int main() {
-
-    const std::mesh myMesh = loadMesh();
-
-
-    // --------------------------------------------------------------------
-
     // (if this code is in your way, put it in the "sem_functions" file)
     // creation of small 1-triangle mesh to test on
     //
@@ -36,6 +30,14 @@ int main() {
     std::mesh testMesh(Xpoints,Ypoints,triangles,edge);
     // -----
 
+    // load mesh into variable   myMesh -------------------
+    // vector<float> Xpoints, Ypoints;
+    // vector<int> triangles, edge;
+    loadMesh(Xpoints,Ypoints,triangles,edge);
+    std::mesh myMesh(Xpoints,Ypoints,triangles,edge);
+    // ----------------------------------------------------
+
+
     // Outline:
     // K*C + f + H(c) = 0 (nonlinear system)
     // start: solve for C: (K+K_lin)C = -(f+f_lin)
@@ -44,10 +46,12 @@ int main() {
 
     vector<Eigen::Triplet<double>> KmatrixTriplets;
     vector<Eigen::Triplet<double>> KLinMatrixTriplets;
-    KmatrixTriplets.reserve(2*9*myMesh.getNbNodes());
-    KLinMatrixTriplets.reserve(2*9*myMesh.getNbNodes()+2*3*myMesh.getNbBoundaryNodes());
-    Eigen::VectorXd f(2*myMesh.getNbNodes());
-    Eigen::VectorXd f_lin(2*myMesh.getNbNodes());
+    int M = myMesh.getNbNodes();
+    int nbBoundaryNodes = myMesh.getNbBoundaryNodes();
+    KmatrixTriplets.reserve(2*9*M);
+    KLinMatrixTriplets.reserve(2*9*M+2*3*nbBoundaryNodes);
+    Eigen::VectorXd f(2*M);
+    Eigen::VectorXd f_lin(2*M);
 
     //     First integral (K1)
     //     Second integral (K_lin, f_lin)
@@ -59,10 +63,10 @@ int main() {
     integral2lin(myMesh, KLinMatrixTriplets, f_lin);
     integral3(myMesh, KmatrixTriplets, f);
 
-    int sizeK = myMesh.getNbNodes()*2;
-    Eigen::SparseMatrix<double,RowMajor> Kmatrix(sizeK,sizeK);
+    int sizeK = M*2;
+    Eigen::SparseMatrix<double> Kmatrix(sizeK,sizeK);
     Kmatrix.setFromTriplets(KmatrixTriplets.begin(), KmatrixTriplets.end());
-    Eigen::SparseMatrix<double,RowMajor> KLinMatrix(sizeK,sizeK);
+    Eigen::SparseMatrix<double> KLinMatrix(sizeK,sizeK);
     KLinMatrix.setFromTriplets(KLinMatrixTriplets.begin(), KLinMatrixTriplets.end());
 
     KLinMatrix += Kmatrix;
@@ -73,20 +77,21 @@ int main() {
     // start: solve for C: (K+K_lin)C = -(f+f_lin)
 
     Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
-    Eigen::VectorXd C0 = chol.sole(f_lin);
+    Eigen::VectorXd C0 = chol.solve(f_lin);
 
     // Functie die second integral evalueert voor gegeven C --> H(c)
-    Eigen::VectorXd H(2*myMesh.getNbNodes());
-    integral2nonlinear(myMesh, C_current, H); // Sibren_functions OK!
+    Eigen::VectorXd H(2*M);
+    // integral2nonlinear(myMesh, C_current, H); // Sibren_functions OK!
 
 
     // Solve nonlinear createLinearSystem
     // nonlinear_optimise_function(C) = K*C + f + H --> solven voor C tot gelijk aan 0.
-    nonlinear_optimise_function(C, K, f, H);
+    // nonlinear_optimise_function(C, K, f, H);
 
 
     // Output resultaat C
 
     // Plot C in Matlab
 
+    return 0;
 }
