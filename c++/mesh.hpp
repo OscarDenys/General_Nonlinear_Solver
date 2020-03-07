@@ -155,7 +155,7 @@ void import_matrix_from_txt_file(const char* filename_X, vector <T>& v, int& row
 
 
 // Load mesh from text files.
-void loadMesh() {
+mesh loadMesh() {
     // loading X-coordinates from txt file
     vector <float> Xpoints;
     int xnbpoints=0;
@@ -180,7 +180,7 @@ void loadMesh() {
     int nbedge=0;
     import_matrix_from_txt_file("edgeLabels.txt",edge,edgeRows,nbedge);
 
-    std::mesh myMesh(Xpoints, Ypoints, triangles, edge);
+    return mesh(Xpoints, Ypoints, triangles, edge);
 }
 
 

@@ -9,18 +9,19 @@
 #include <sstream>
 #include "mesh.hpp"
 #include "sibren_functions.hpp"
+#include "sem_functions.hpp"
 #include <Eigen/SparseCore>
 
 
 using namespace std;
 
 
-int main(){
+int main() {
 
-    std::loadMesh();
+    std::mesh myMesh = loadMesh();
 
 
-// --------------------------------------------------------------------
+    // --------------------------------------------------------------------
 
     // (if this code is in your way, put it in the "sem_functions" file)
     // creation of small 1-triangle mesh to test on
@@ -32,21 +33,21 @@ int main(){
     vector<float> Ypoints{0,1,0};
     vector<int> triangles{1,2,3};
     vector<int> edge{2,3,1};
-    mesh testMesh(Xpoints,Ypoints,triangles,edge);
+    std::mesh testMesh(Xpoints,Ypoints,triangles,edge);
     // -----
 
-  // Outline:
+    // Outline:
     // K*C + f + H(c) = 0 (nonlinear system)
     // start: solve for C: (K+K_lin)C = -(f+f_lin)
 
-  // Implementation:
+    // Implementation:
 
-    std::vector<Eigen::Triplet<double>> KmatrixTriplets;
-    std::vector<Eigen::Triplet<double>> KLinMatrixTriplets;
+    vector<Eigen::Triplet<double>> KmatrixTriplets;
+    vector<Eigen::Triplet<double>> KLinMatrixTriplets;
     KmatrixTriplets.reserve(2*9*myMesh.getNbNodes());
     KLinMatrixTriplets.reserve(2*9*myMesh.getNbNodes()+2*3*myMesh.getNbBoundaryNodes());
-    Eigen::vectorXd f(2*myMesh.getNbNodes());
-    Eigen::vectorXd f_lin(2*myMesh.getNbNodes());
+    Eigen::VectorXd f(2*myMesh.getNbNodes());
+    Eigen::VectorXd f_lin(2*myMesh.getNbNodes());
 
     //     First integral (K1)
     //     Second integral (K_lin, f_lin)
@@ -69,9 +70,9 @@ int main(){
 
 
     // Solve voor lin oplossing (startwaarde)
-      // start: solve for C: (K+K_lin)C = -(f+f_lin)
-      Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
-      Eigen::VectorXd C0 = chol.sole(f_lin);
+    // start: solve for C: (K+K_lin)C = -(f+f_lin)
+    Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
+    Eigen::VectorXd C0 = chol.sole(f_lin);
 
     // Functie die second integral evalueert voor gegeven C --> H(c)
     Eigen::VectorXd H(2*myMesh.getNbNodes());
