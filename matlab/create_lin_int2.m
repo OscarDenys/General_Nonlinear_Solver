@@ -1,11 +1,11 @@
-function [b] = eval_nonlinear(mesh, C)
+function [b] = create_lin_int2(mesh)
     load('var.mat');
     % finite elements
     nodes = mesh.Nodes;
     nb_nodes = length(nodes);
     nb_elements_total = length(mesh.Elements(1,:));
 
-    % Iterate over all elements
+
     b = zeros(2*nb_nodes, 1);
 
     for elem_index = 1:nb_elements_total  
@@ -27,13 +27,17 @@ function [b] = eval_nonlinear(mesh, C)
         det_jac = det(Jac);
 
         % =====================   integraal 2 - lineair (5-)
-        [resp12u, resp12v] = respiration(n1,n2,C);
-        [resp13u, resp13v] = respiration(n1,n3,C);
-        [resp23u, resp23v] = respiration(n2,n3,C);
+        % Change this to change linearisation......
+        resp12u = V_mu;
+        resp12v = r_q*V_mu;
+        resp13u = V_mu;
+        resp13v = r_q*V_mu;
+        resp23u = V_mu;
+        resp23v = r_q*V_mu;
         
         F1 = det_jac * ((P1(1) + P2(1))*resp12u + (P1(1)+P3(1))*resp13u)/24;
         F2 = det_jac * ((P1(1) + P2(1))*resp12u + (P2(1)+P3(1))*resp23u)/24;
-        F3 = det_jac * ((P1(1) + P3(1))*resp13u + (P2(1)+P3(1))*resp23u)/ 24;
+        F3 = det_jac * ((P1(1) + P3(1))*resp13u + (P2(1)+P3(1))*resp23u)/24;
 
         b(n1) = b(n1) + F1;
         b(n2) = b(n2) + F2;
@@ -58,4 +62,3 @@ function [b] = eval_nonlinear(mesh, C)
    
 
 end
-

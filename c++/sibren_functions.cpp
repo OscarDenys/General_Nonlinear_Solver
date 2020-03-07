@@ -5,6 +5,7 @@
 #include "constants.hpp"
 #include "mesh.hpp"
 #include "sibren_functions.hpp"
+#include "sem_functions.hpp"
 
 namespace std {
 
@@ -40,7 +41,7 @@ void integral1(mesh const &myMesh, std::vector<Eigen::Triplets<double>> &K){
     myMesh.getNodeCoordinates(n2, P2);
     myMesh.getNodeCoordinates(n3, P3);
 
-    det_jac = P1[1]*P2[0] - P1[0]*P2[1] + P1[0]*P3[1] - P1[1]*P3[0] - P2[0]*P3[1] + P2[1]*P3[0]; // Bewerking op single prec floats opslaan in double precision float mag???
+    det_jac = detJac(P1,P2,P3);
     temp = (P1[0] + P2[0] + P3[0])/(6*det_jac);
 
     // ---------------------------------------------------------------------------------

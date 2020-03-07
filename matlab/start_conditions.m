@@ -50,7 +50,7 @@ tr = triangulation(pgon);
 tnodes = [x; y];
 telements = tr.ConnectivityList';      
 
-geometryFromMesh(model,tnodes,telements);   % create geometry
+geometryFromMesh(model,tnodes,telements);   % create 
 clear tnodes telements tr pgon;
 mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.05);
 
@@ -81,11 +81,11 @@ global nodes
 nodes = mesh.Nodes;
 % Get stiffness matrix K and constant term f:
 [K, K_lin, f, f_lin] = create_stiffness(mesh);
+f_lin_gross = create_lin_int2(mesh);
 
-
-% Start iterative solver: 
 % First solution: 
 C_0 = (K+K_lin) \ -(f+f_lin);
+%C_0 = K\-(f+f_lin_gross);
 
 % C_0(C_0<0) = -20000;
 
@@ -114,20 +114,21 @@ C = fsolve(fun, C_0, options );
 %% Plot result: 
 
 figure(2); clf;
-subplot(211); hold on; title('O_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C(1:length(nodes)));
+subplot(121); hold on; title('O_2 concentration');
+pdeplot(model,'XYData',C(1:length(nodes)));
+% scatter3(nodes(1,:), nodes(2,:), C(1:length(nodes)));
 %scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
 
-subplot(212);
+subplot(122);
 hold on; title('CO_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
+pdeplot(model,'XYData',C(length(nodes)+1:end))
 %scatter3(-nodes(1,:), nodes(2,:), c(length(nodes)+1:end))
 
 
 %% Functions (load this before the rest...) 
 
 % Function used in iterative nonlinear solver: TODO should this be -f or +f?
-fun = @(C) 1e4*( K*C + f +eval_nonlinear(mesh, C));
+fun = @(C) 1e4*( K*C + f + eval_nonlinear(mesh, C));
 
 function stop = outfun(C_, optimValues, stats)
     global model nodes 
@@ -143,10 +144,10 @@ function stop = outfun(C_, optimValues, stats)
     pdeplot(model,'XYData',C_(length(nodes)+1:end));
     title(['CO_2 concentration, current fval: ', num2str(norm(optimValues.fval,2))]);
     
-    stop = true; 
-    if (norm(optimValues.fval,2) < .0000001)
-        stop = true;
-    end
+    stop = false; 
+%     if (norm(optimValues.fval,2) < .0000001)
+%         stop = true;
+%     end
 
 end
 
