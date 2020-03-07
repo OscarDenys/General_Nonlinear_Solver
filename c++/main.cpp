@@ -9,6 +9,7 @@
 #include <sstream>
 #include "mesh.hpp"
 #include "sibren_functions.hpp"
+#include <Eigen/SparseCore>
 
 
 using namespace std;
@@ -27,10 +28,10 @@ int main(){
     //      |\
     //      |_\
     //
-    vector<double> Xpoints{0,0,0.5};
-    vector<double> Ypoints{0,1,0};
+    vector<float> Xpoints{0,0,0.5};
+    vector<float> Ypoints{0,1,0};
     vector<int> triangles{1,2,3};
-    vector<int> edge{2,3,1}
+    vector<int> edge{2,3,1};
     mesh testMesh(Xpoints,Ypoints,triangles,edge);
     // -----
 
