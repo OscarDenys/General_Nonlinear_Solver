@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <cassert>
 
 namespace std{
 
@@ -12,35 +13,36 @@ namespace std{
 class mesh{
 
     private:
-        vector<float> Xpoints_;
-        vector<float> Ypoints_;
-        int nb_nodes_;
-        int nb_elements_;
-        int nb_boundary_nodes;
+        const vector<float> Xpoints_;
+        const vector<float> Ypoints_;
+        const int nb_nodes_;
+        const int nb_elements_;
+        const int nb_boundary_nodes_;
 
         // Structure triangles
         //  - one dimensional vector containing the indices of the Xpoints and Ypoints vectors. 
         //  - each pair of three elements (index%3 = {0,1,2}) forms a triangle.
-        vector<int> triangles_; 
+        const vector<int> triangles_; 
 
         // Structure triangles
         //  - one dimensional vector containing the indices of the Xpoints and Ypoints vectors. 
         //  - the indices are given in clockwise direction around the edge.
-        vector<int> edge_;
+        const vector<int> edge_;
 
         //vector<vector<T>> 
 
     public:
-    mesh(vector<float> Xpoints, vector<float> Ypoints, vector<int> triangles, vector<int> edge){
-        triangles_ = triangles;
-        Xpoints_ = Xpoints;
-        Ypoints_ = Ypoints;
-        edge_ = edge;
-        nb_elements_ = triangles_.size()/3;
-        nb_nodes_ = Xpoints_.size();
-        nb_boundary_nodes = edge_.size();
-
-
+    mesh(vector<float> Xpoints, vector<float> Ypoints, vector<int> triangles, vector<int> edge)
+    : Xpoints_(Xpoints)
+    , Ypoints_(Ypoints)
+    , nb_nodes_(Xpoints_.size())
+    , nb_elements_(triangles.size()/3)
+    , nb_boundary_nodes_(edge_.size())
+    , triangles_(triangles)
+    , edge_(edge) 
+    {
+        assert(Xpoints_.size() == Ypoints_.size());
+        assert(triangles_.size() % 3 == 0);
     }
 
     // Checks if point index is on the edge and returns which edge.
@@ -48,7 +50,7 @@ class mesh{
     // OUTPUT:  - 0 if the point is not on the edge
     //          - 1 for edge 1
     //          - 2 for edge 2
-    int isOnEdge(int index) {
+    const int isOnEdge(int index) {
         if (std::find(edge_.begin(), edge_.end(), index) != edge_.end()){
             if (Xpoints_[index] == 0) {
                 return 1;
@@ -77,10 +79,10 @@ class mesh{
     }
 
     const int getNbBoundaryNodes() {
-        return nb_boundary_nodes;
+        return nb_boundary_nodes_;
     }
 
-    const void getBoundaryNodes(vector<int> nodes, boolean boundaryFlag = false) {
+    const void getBoundaryNodes(vector<int> nodes, bool boundaryFlag = false) {
         // return nodes indices boundary nodes in the correct order
         // Gamma_1 if boundaryFlag = true, else Gamma_2
     } 

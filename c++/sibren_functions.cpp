@@ -1,7 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include <vector>
-#include <Eigen/SparseCore>
+#include "Eigen/SparseCore"
 #include "constants.hpp"
 #include "mesh.hpp"
 #include "sibren_functions.hpp"
@@ -11,7 +11,7 @@ namespace std {
 
 typedef Eigen::Triplet<double> T;
 
-void integral1(mesh const &myMesh, std::vector<Eigen::Triplets<double>> &K){
+void integral1(mesh const &myMesh, std::vector<Eigen::Triplet<double>> &K){
 
 
   // nodes --> list met nodes van mesh (label, x, y)
@@ -97,7 +97,7 @@ void integral1(mesh const &myMesh, std::vector<Eigen::Triplets<double>> &K){
     K.push_back(T(nbNodes+n2-1, nbNodes+n3-1, temp*result[1]));
 
 
-      // Node 3
+    // Node 3
     commonPart[0] = (P3[0]-P2[0])*(P2[0]-P1[0]);
     commonPart[1] = -(P2[1]-P3[1])*(P2[1]-P1[1]);
     applySigmaAndAddCommonPart(result, commonPart);
@@ -127,6 +127,41 @@ void applySigmaAndAddCommonPart(std::vector<double> &result, std::vector<double>
   return;
 }
 
+void integral2nonlinear(mesh & myMesh, Eigen::VectorXd &H, Eigen::VectorXd &C) {
+    
+    double Ru12, Ru13, Ru23;
+    double Rv12, Rv13, Rv23;
+    int M = myMesh.getNbNodes();
+    double det_jac;
+    int n1, n2, n3;
+    vector<int> currElem(3);
+    vector<float> P1(2), P2(2), P3(3);
 
+    int nbElements = myMesh.getNbElements();
+
+    for (int elem = 0; elem < nbElements; elem++) {
+        myMesh.getElement(elem, currElem);
+        n1 = currElem[0];
+        n2 = currElem[1];
+        n3 = currElem[2];
+        myMesh.getNodeCoordinates(n1, P1);
+        myMesh.getNodeCoordinates(n2, P2);
+        myMesh.getNodeCoordinates(n3, P3);
+
+        det_jac = detJac(P1,P2,P3);
+
+        evaluateRespiration(n1, n2, C, Ru12, Rv12);
+        evaluateRespiration(n1, n3, C, Ru13, Rv13);
+        evaluateRespiration(n2, n3, C, Ru23, Rv23);
+        // TODO: kloppen die mintekens hier?
+        H[n1]   -= det_jac * ((P1[0]+P2[0])*Ru12 + (P1[0] + P3[0])*Ru13) / 24;
+        H[n2]   -= det_jac * ((P1[0]+P2[0])*Ru12 + (P2[0] + P3[0])*Ru23) / 24;
+        H[n3]   -= det_jac * ((P1[0]+P3[0])*Ru13 + (P2[0] + P3[0])*Ru23) / 24;
+        H[n1+M] -= det_jac * ((P1[0]+P2[0])*Rv12 + (P1[0] + P3[0])*Rv13) / 24;
+        H[n2+M] -= det_jac * ((P1[0]+P2[0])*Rv12 + (P2[0] + P3[0])*Rv23) / 24;
+        H[n3+M] -= det_jac * ((P1[0]+P3[0])*Rv13 + (P2[0] + P3[0])*Rv23) / 24;
+    }
+
+}
 
 }
