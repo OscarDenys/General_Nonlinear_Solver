@@ -9,6 +9,7 @@
 #include <sstream>
 #include "mesh.hpp"
 #include "sibren_functions.hpp"
+#include <Eigen/SparseCore>
 
 
 using namespace std;
@@ -27,10 +28,10 @@ int main(){
     //      |\
     //      |_\
     //
-    vector<double> Xpoints{0,0,0.5};
-    vector<double> Ypoints{0,1,0};
+    vector<float> Xpoints{0,0,0.5};
+    vector<float> Ypoints{0,1,0};
     vector<int> triangles{1,2,3};
-    vector<int> edge{2,3,1}
+    vector<int> edge{2,3,1};
     mesh testMesh(Xpoints,Ypoints,triangles,edge);
     // -----
 
@@ -53,7 +54,7 @@ int main(){
     //  Sparse variables optellen tot eind resultaat
     //      K = K1+K3, f = f3
 
-    integral1(myMesh, KmatrixTriplets);
+    integral1(myMesh, KmatrixTriplets); // Sibren_functions OK!
     integral2lin(myMesh, KLinMatrixTriplets, f_lin);
     integral3(myMesh, KmatrixTriplets, f);
 
@@ -69,12 +70,13 @@ int main(){
 
     // Solve voor lin oplossing (startwaarde)
       // start: solve for C: (K+K_lin)C = -(f+f_lin)
-      Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
-      Eigen::VectorXd C0 = chol.sole(f_lin);
+    Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
+    Eigen::VectorXd C0 = chol.sole(f_lin);
 
     // Functie die second integral evalueert voor gegeven C --> H(c)
     Eigen::VectorXd H(2*myMesh.getNbNodes());
-    integral2nonlinear(myMesh, C_current, H);
+    integral2nonlinear(myMesh, C_current, H); // Sibren_functions OK!
+
 
     // Solve nonlinear createLinearSystem
     // nonlinear_optimise_function(C) = K*C + f + H --> solven voor C tot gelijk aan 0.
