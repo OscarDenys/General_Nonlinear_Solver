@@ -83,13 +83,9 @@ nodes = mesh.Nodes;
 [K, K_lin, f, f_lin] = create_stiffness(mesh);
 f_lin_gross = create_lin_int2(mesh);
 
-
-% Start iterative solver: 
 % First solution: 
 C_0 = (K+K_lin) \ -(f+f_lin);
 %C_0 = K\-(f+f_lin_gross);
-%C_0 = K_lin\-(f+f_lin);
-%C_0 = K\-f;
 
 % C_0(C_0<0) = -20000;
 
@@ -118,13 +114,14 @@ C = fsolve(fun, C_0, options );
 %% Plot result: 
 
 figure(2); clf;
-subplot(211); hold on; title('O_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C(1:length(nodes)));
+subplot(121); hold on; title('O_2 concentration');
+pdeplot(model,'XYData',C(1:length(nodes)));
+% scatter3(nodes(1,:), nodes(2,:), C(1:length(nodes)));
 %scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
 
-subplot(212);
+subplot(122);
 hold on; title('CO_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
+pdeplot(model,'XYData',C(length(nodes)+1:end))
 %scatter3(-nodes(1,:), nodes(2,:), c(length(nodes)+1:end))
 
 

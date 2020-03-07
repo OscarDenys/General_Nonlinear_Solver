@@ -83,9 +83,9 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
         A2 = det_jac/24* 120*lin_k*C_uamb *(P1(1) + 2*P2(1) + P3(1));
         A3 = det_jac/24* 120*lin_k*C_uamb *(P1(1) + P2(1) + 2*P3(1));
         
-        f_lin(n1) = f_lin(n1) + A1;
-        f_lin(n2) = f_lin(n2) + A2;
-        f_lin(n3) = f_lin(n3) + A3;
+        f_lin(n1) = f_lin(n1) - A1;
+        f_lin(n2) = f_lin(n2) - A2;
+        f_lin(n3) = f_lin(n3) - A3;
         
         % part linear in c
 %         elem_stiff(1,1) = (6*P1(1) + 2*P2(1) + 2*P3(1)) *lin_k*det_jac;
