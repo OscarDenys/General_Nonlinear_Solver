@@ -96,9 +96,10 @@ class mesh{
         return nb_elements_;
     }
 
-    const void getElement(int elementIndex) {
+    const void getElement(int elementIndex, vector<int> nodeIndices) {
         // return node indices for given element index
-        return element_(elementIndex);
+        assert (nodeIndices.size() == 3);
+        nodeIndices.swap(element_(elementIndex));
     } 
 
     const void getNodeCoordinates(int nodeIndex, vector<float> coordinates) {
@@ -118,14 +119,14 @@ class mesh{
         }
     }
 
-    const void getBoundaryNodes(bool firstBoundary = false) {
+    const void getBoundaryNodes(vector<int> nodeIndices, bool firstBoundary = false) {
         // return nodes indices boundary nodes in the correct order
         // Gamma_1 if firstBoundary = true, else Gamma_2
         if (firstBoundary){
-            return edge1_;
+            nodeIndices.swap(edge1_);
         }
         else {
-            return edge2_;
+            nodeIndices.swap(edge2_);
         }
     } 
 

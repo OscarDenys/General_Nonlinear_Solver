@@ -38,13 +38,13 @@ class mesh{
 
     const int getNbElements();
 
-    const void getElement(int elementIndex);
+    const void getElement(int elementIndex, vector<int> nodeIndices);
 
     const void getNodeCoordinates(int nodeIndex, vector<float> coordinates);
 
     const int getNbBoundaryNodes(int edge1or2);
 
-    const void getBoundaryNodes(bool firstBoundary = false);
+    const void getBoundaryNodes(vector<int> nodeIndices, bool firstBoundary = false);
 
     const int getNbNodes();
 
