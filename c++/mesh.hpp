@@ -15,16 +15,19 @@ namespace std{
 class mesh{
 
     private:
-        const vector<float> Xpoints_;
-        const vector<float> Ypoints_;
+        const vector<float> Xpoint_;
+        const vector<float> Ypoint_;
         const int nb_nodes_;
         const int nb_elements_;
         const int nb_boundary_nodes_;
         const vector<int> triangles_; 
         const vector<int> edge_;
+        const vector<int> edge1_;
+        const vector<int> edge2_;
+        const vector<vector<int>> element_;
 
     public:
-    mesh(vector<float> Xpoints, vector<float> Ypoints, vector<int> triangles, vector<int> edge);
+    mesh(vector<float> Xpoint, vector<float> Ypoint, vector<int> triangles, vector<int> edge);
 
     // Checks if point index is on the edge and returns which edge.
     // INPUT: point index 
@@ -35,13 +38,13 @@ class mesh{
 
     const int getNbElements();
 
-    const void getElement(int elementIndex, vector<int> nodes);
+    const void getElement(int elementIndex);
 
     const void getNodeCoordinates(int nodeIndex, vector<float> coordinates);
 
-    const int getNbBoundaryNodes();
+    const int getNbBoundaryNodes(int edge1or2);
 
-    const void getBoundaryNodes(vector<int> nodes, bool boundaryFlag = false);
+    const void getBoundaryNodes(bool firstBoundary = false);
 
     const int getNbNodes();
 
@@ -57,7 +60,7 @@ template<class T>
 void import_matrix_from_txt_file(const char* filename_X, vector <T>& v, int& rows, int& cols);
 
 // Load mesh from text files.
-void loadMesh(vector <float> Xpoints, vector <float> Ypoints, vector <int> triangles, vector <int> edge);
+void loadMesh(vector <float> Xpoint, vector <float> Ypoint, vector <int> triangles, vector <int> edge);
 
 
 } 

@@ -1,7 +1,3 @@
-//http://youngmok.com/c-code-for-reading-unknown-size-matrix-from-text-file/
-//http://www.cplusplus.com/doc/tutorial/files/
-//https://www.codeproject.com/Questions/210023/How-to-read-matrix-from-text-file-in-Cplusplus
-
 #include <fstream>
 #include <string>
 #include <vector>
@@ -23,18 +19,18 @@ int main() {
     //      "|\"
     //      "|_\"
     //
-    vector<float> Xpoints{0,0,0.5};
-    vector<float> Ypoints{0,1,0};
+    vector<float> Xpoint{0,0,0.5};
+    vector<float> Ypoint{0,1,0};
     vector<int> triangles{1,2,3};
     vector<int> edge{2,3,1};
-    std::mesh testMesh(Xpoints,Ypoints,triangles,edge);
+    std::mesh testMesh(Xpoint,Ypoint,triangles,edge);
     // -----
 
     // load mesh into variable   myMesh -------------------
     // vector<float> Xpoints, Ypoints;
     // vector<int> triangles, edge;
-    loadMesh(Xpoints,Ypoints,triangles,edge);
-    std::mesh myMesh(Xpoints,Ypoints,triangles,edge);
+    loadMesh(Xpoint,Ypoint,triangles,edge);
+    std::mesh myMesh(Xpoint,Ypoint,triangles,edge);
     // ----------------------------------------------------
 
 

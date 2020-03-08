@@ -12,8 +12,11 @@ typedef Eigen::Triplet<double> Trip;
 namespace std {
 
     void integral1(mesh &myMesh, std::vector<Trip> &K){
-        // nodes --> list met nodes van mesh (label, x, y)
-        // elements --> list met elements van mesh (node1, node2, node3, boundary(boolean))
+        // nodes --> list met nodes van mesh (label, x, y) 
+        //--> !!! label = index in list dus points accesen met Xpoint(index) en Ypoint(index), isOnEdge(index) geeft integer 0 (niet op edge), 1 of 2 
+        
+        // elements --> list met elements van mesh (node1, node2, node3, boundary(integer))  
+        //--> !!! boundary staat per node ipv per element dus Element(elementIndex) geeft (nodeIndex1,nodeIndex2,nodeIndex3)
 
         std::vector<int> currentElement(3);
         std::vector<float> P1(2), P2(2), P3(2);

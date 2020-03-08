@@ -1,3 +1,8 @@
+//http://youngmok.com/c-code-for-reading-unknown-size-matrix-from-text-file/
+//http://www.cplusplus.com/doc/tutorial/files/
+//https://www.codeproject.com/Questions/210023/How-to-read-matrix-from-text-file-in-Cplusplus
+
+
 #include "mesh.hpp"
 #include <fstream>
 #include <string>
@@ -13,8 +18,8 @@ namespace std{
 class mesh{
 
     private:
-        const vector<float> Xpoints_;
-        const vector<float> Ypoints_;
+        const vector<float> Xpoint_;
+        const vector<float> Ypoint_;
         const int nb_nodes_;
         const int nb_elements_;
         const int nb_boundary_nodes_;
@@ -24,25 +29,48 @@ class mesh{
         //  - each pair of three elements (index%3 = {0,1,2}) forms a triangle.
         const vector<int> triangles_; 
 
-        // Structure triangles
-        //  - one dimensional vector containing the indices of the Xpoints and Ypoints vectors. 
-        //  - the indices are given in clockwise direction around the edge.
+        // Structure edge
+        //  - one dimensional vector containing the indices of the Xpoint and Ypoint vectors. 
+        //  - the indices are given in clockwise direction around the edge (starting from the top of the pear).
         const vector<int> edge_;
+        const vector<int> edge1_;
+        const vector<int> edge2_;
 
-        //vector<vector<T>> 
+        const vector<vector<int>> element_;
 
     public:
-    mesh(vector<float> Xpoints, vector<float> Ypoints, vector<int> triangles, vector<int> edge)
-    : Xpoints_(Xpoints)
-    , Ypoints_(Ypoints)
-    , nb_nodes_(Xpoints_.size())
+    mesh(vector<float> Xpoint, vector<float> Ypoint, vector<int> triangles, vector<int> edge)
+    : Xpoint_(Xpoint)
+    , Ypoint_(Ypoint)
+    , nb_nodes_(Xpoint_.size())
     , nb_elements_(triangles.size()/3)
     , nb_boundary_nodes_(edge_.size())
     , triangles_(triangles)
     , edge_(edge) 
     {
-        assert(Xpoints_.size() == Ypoints_.size());
+        assert(Xpoint_.size() == Ypoint_.size());
         assert(triangles_.size() % 3 == 0);
+
+        const vector<vector<int>> element_(nb_elements_);
+        for (int i = 0; i < triangles.size(); i++){
+            if (i%3 ==0){
+                element_(i/3).push_back(triangles_(i));
+                element_(i/3).push_back(triangles_(i+1));
+                element_(i/3).push_back(triangles_(i+2));
+            }
+        }
+
+        const vector<int> edge1_;
+        const vector<int> edge2_;
+        for (int i = 0; i < edge_.size(); i++){
+            if ( Xpoint_(edge_(i)) == 0 ) {
+                edge1_.push_back(edge(i));
+            }
+            else {
+                edge2_.push_back(edge(i));
+            }
+        }
+
     }
 
     // Checks if point index is on the edge and returns which edge.
@@ -52,7 +80,7 @@ class mesh{
     //          - 2 for edge 2
     const int isOnEdge(int index) {
         if (std::find(edge_.begin(), edge_.end(), index) != edge_.end()){
-            if (Xpoints_[index] == 0) {
+            if (Xpoint_[index] == 0) {
                 return 1;
             }
             else {
@@ -68,23 +96,37 @@ class mesh{
         return nb_elements_;
     }
 
-    const void getElement(int elementIndex, vector<int> nodes) {
+    const void getElement(int elementIndex) {
         // return node indices for given element index
-
+        return element_(elementIndex);
     } 
 
     const void getNodeCoordinates(int nodeIndex, vector<float> coordinates) {
-        coordinates[0] = Xpoints_[nodeIndex];
-        coordinates[1] = Ypoints_[nodeIndex];
+        coordinates[0] = Xpoint_[nodeIndex];
+        coordinates[1] = Ypoint_[nodeIndex];
     }
 
-    const int getNbBoundaryNodes() {
-        return nb_boundary_nodes_;
+    const int getNbBoundaryNodes(int edge1or2 = 0) {
+        if (edge1or2 ==0){
+            return nb_boundary_nodes_;
+        }
+        else if (edge1or2 ==1){
+            return edge1_.size();
+        }
+        else if (edge1or2 ==2){
+            return edge2_.size();
+        }
     }
 
-    const void getBoundaryNodes(vector<int> nodes, bool boundaryFlag = false) {
+    const void getBoundaryNodes(bool firstBoundary = false) {
         // return nodes indices boundary nodes in the correct order
-        // Gamma_1 if boundaryFlag = true, else Gamma_2
+        // Gamma_1 if firstBoundary = true, else Gamma_2
+        if (firstBoundary){
+            return edge1_;
+        }
+        else {
+            return edge2_;
+        }
     } 
 
     const int getNbNodes() {
@@ -156,18 +198,18 @@ void import_matrix_from_txt_file(const char* filename_X, vector <T>& v, int& row
 
 
 // Load mesh from text files.
-void loadMesh(vector <float> Xpoints, vector <float> Ypoints, vector <int> triangles, vector <int> edge) {
+void loadMesh(vector <float> Xpoint, vector <float> Ypoint, vector <int> triangles, vector <int> edge) {
     // loading X-coordinates from txt file
     // vector <float> Xpoints;
     int xnbpoints=0;
     int xpointRows=0;
-    import_matrix_from_txt_file("Xpoints.txt",Xpoints,xpointRows,xnbpoints);
+    import_matrix_from_txt_file("Xpoints.txt",Xpoint,xpointRows,xnbpoints);
 
     // loading Y-coordinates from txt file
     // vector <float> Ypoints;
     int ynbpoints=0;
     int ypointRows=0;
-    import_matrix_from_txt_file("Ypoints.txt",Ypoints,ypointRows,ynbpoints);
+    import_matrix_from_txt_file("Ypoints.txt",Ypoint,ypointRows,ynbpoints);
     
     // loading point indices of triangles from txt file
     // vector <int> triangles;

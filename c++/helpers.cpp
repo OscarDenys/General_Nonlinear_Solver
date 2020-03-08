@@ -10,8 +10,10 @@ namespace std {
 
     double detJac(vector<float> P1, vector<float> P2, vector<float> P3) {
         return double(P1[1]*P2[0] - P1[0]*P2[1] + P1[0]*P3[1] - P1[1]*P3[0] - P2[0]*P3[1] + P2[1]*P3[0]); // Bewerking op single prec floats opslaan in double precision float mag???
-    } // detJac
+    } // detJac                                                                                             //--> ja maar niet nodig want resultaat is ook single precision
 
+
+    // Which formula is this?
     void applySigmaAndAddCommonPart(std::vector<double> &result, std::vector<double> const &commonPart){
         // TODO: volgens wiskundige afleiding moet sigma_uz maal r gedeelte en andersom, dit is niet hoe wij het in MATLAB doen!!!
         result[0] = sigma_uz*commonPart[0] + sigma_ur*commonPart[1];
