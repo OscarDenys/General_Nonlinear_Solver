@@ -9,6 +9,11 @@
 
 typedef Eigen::Triplet<double> Trip;
 
+// typedef to switch efficiently between float and double precision would be a good idea. 
+//  Because from the moment a number of single precision is used in a calculation this imediately makes the result single precision.
+typedef double precision;
+//typedef float precision; 
+
 namespace std {
 
     void integral1(mesh &myMesh, std::vector<Trip> &K){
@@ -38,7 +43,7 @@ namespace std {
         temp = (P1[0] + P2[0] + P3[0])/(6*det_jac);
 
         // ---------------------------------------------------------------------------------
-        // This code snippet processes both the first integral of (5) and (6)
+        // This code snippet processes both the first integral of (5) and (6) in assignment.
         // TODO: Integraal 1; eventueel deelfunctie maken hiervoor???
         // TODO: herschrijf deze assignments zodra we weten hoe sparse matrix voorgesteld wordt.
         // TODO: berekening commonPart vector kan geschreven worden in 1 lijn met vector bewerkingen?
