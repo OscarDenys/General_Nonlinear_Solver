@@ -11,8 +11,8 @@ typedef Eigen::Triplet<double> Trip;
 
 // typedef to switch efficiently between float and double precision would be a good idea. 
 //  Because from the moment a number of single precision is used in a calculation this imediately makes the result single precision.
-typedef double precision;
-//typedef float precision; 
+typedef double prec;
+//typedef float prec; 
 
 namespace std {
 
