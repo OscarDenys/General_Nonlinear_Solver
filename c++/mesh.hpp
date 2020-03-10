@@ -42,6 +42,8 @@ class mesh{
 
     const void getNodeCoordinates(int nodeIndex, vector<float> coordinates);
 
+    const int getNbBoundaryNodes();
+
     const int getNbBoundaryNodes(int edge1or2);
 
     const void getBoundaryNodes(vector<int> nodeIndices, bool firstBoundary = false);

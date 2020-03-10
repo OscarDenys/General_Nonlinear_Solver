@@ -108,6 +108,11 @@ class mesh{
     }
 
     // Returns total number of boundary nodes without argument. 
+    const int getNbBoundaryNodes() {
+        return nb_boundary_nodes_;
+    }
+
+    // Returns total number of boundary nodes without argument. 
     // Returns number of nodes on edge 1 or 2 if specified.
     const int getNbBoundaryNodes(int edge1or2 = 0) {
         if (edge1or2 ==0){
