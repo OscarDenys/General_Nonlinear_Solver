@@ -5,14 +5,12 @@
 
 #include "mesh.hpp"
 #include <fstream>
-#include <string>
+#include <iomanip>
 #include <vector>
 #include <iostream>
-#include <sstream>
-#include <algorithm>
 #include <cassert>
 
-namespace oscar{
+namespace meshClass{
 
 
 class mesh{
@@ -20,9 +18,6 @@ class mesh{
     private:
         const std::vector<float> Xpoint_;
         const std::vector<float> Ypoint_;
-        const int nb_nodes_;
-        const int nb_elements_;
-        const int nb_boundary_nodes_;
 
         // Structure triangles
         //  - one dimensional std::vector containing the indices of the Xpoints and Ypoints std::vectors.
@@ -32,204 +27,126 @@ class mesh{
         // Structure edge
         //  - one dimensional vector containing the indices of the Xpoint and Ypoint vectors.
         //  - the indices are given in clockwise direction around the edge (starting from the top of the pear).
-        std::vector<int> edge_;
+
         std::vector<int> edge1_;
         std::vector<int> edge2_;
 
-        std::vector<std::vector<int>> element_;
 
     public:
-    mesh(std::vector<float> Xpoint, std::vector<float> Ypoint, std::vector<int> triangles, std::vector<int> edge)
+    mesh(std::vector<float> Xpoint, std::vector<float> Ypoint, std::vector<int> triangles, std::vector<int> edge1, std::vector<int> edge2)
     : Xpoint_(Xpoint)
     , Ypoint_(Ypoint)
-    , nb_nodes_(Xpoint_.size())
-    , nb_elements_(triangles.size()/3)
-    , nb_boundary_nodes_(edge_.size())
     , triangles_(triangles)
-    , edge_(edge)
+    // First and last element of edge1_ and edge2_ are the common part!
+    , edge1_(edge1)
+    , edge2_(edge2)
     {
         assert(Xpoint_.size() == Ypoint_.size());
         assert(triangles_.size() % 3 == 0);
-
-        element_(nb_elements_);
-        for (int i = 0; i < triangles.size(); i++){
-            if (i%3 ==0){
-                element_[i/3].push_back(triangles_[i]);
-                element_[i/3].push_back(triangles_[i+1]);
-                element_[i/3].push_back(triangles_[i+2]);
-            }
-        }
-
-
-        for (int i = 0; i < edge_.size(); i++){
-            if ( Xpoint_(edge_[i]) == 0 ) {
-                edge1_.push_back(edge[i]);
-            }
-            else {
-                edge2_.push_back(edge[i]);
-            }
-        }
-
     }
 
-    // Checks if point index is on the edge and returns which edge.
-    // INPUT: point index
-    // OUTPUT:  - 0 if the point is not on the edge
-    //          - 1 for edge 1
-    //          - 2 for edge 2
-    const int isOnEdge(int index) {
-        if (std::find(edge_.begin(), edge_.end(), index) != edge_.end()){
-            if (Xpoint_[index] == 0) {
-                return 1;
-            }
-            else {
-                return 2;
-            }
-        }
-        else {
-            return 0;
-        }
-    }
 
     const int getNbElements() {
-        return nb_elements_;
+        return triangles_.size()/3;
     }
 
-    const void getElement(int elementIndex, std::vector<int> nodeIndices) {
+    const int getNbNodes() {
+      return Xpoint_.size();
+    }
+
+    const void getElement(int elementIndex, std::vector<int> &nodeIndices) {
         // return node indices for given element index
         assert (nodeIndices.size() == 3);
-        nodeIndices.swap(element_[elementIndex]);
+        nodeIndices[0] = triangles_[3*elementIndex];
+        nodeIndices[1] = triangles_[3*elementIndex+1];
+        nodeIndices[2] = triangles_[3*elementIndex+2];
     }
 
     const void getNodeCoordinates(int nodeIndex, std::vector<float> coordinates) {
+        assert (coordinates.size() == 2);
         coordinates[0] = Xpoint_[nodeIndex];
         coordinates[1] = Ypoint_[nodeIndex];
     }
 
-    // Returns total number of boundary nodes without argument.
-    const int getNbBoundaryNodes() {
-        return nb_boundary_nodes_;
+    // Returns number of boundary nodes.
+    const int getNbBoundaryNodes(bool edge2 = true) {
+      if (edge2) {
+        return edge2_.size();
+      } else {
+        return edge1_.size();
+      }
     }
 
-    // Returns total number of boundary nodes without argument.
-    // Returns number of nodes on edge 1 or 2 if specified.
-    const int getNbBoundaryNodes(int edge1or2 = 0) {
-        if (edge1or2 ==0){
-            return nb_boundary_nodes_;
-        }
-        else if (edge1or2 ==1){
-            return edge1_.size();
-        }
-        else if (edge1or2 ==2){
-            return edge2_.size();
-        }
-    }
-
-    const void getBoundaryNodes(std::vector<int> nodeIndices, bool firstBoundary = false) {
-        // return nodes indices boundary nodes in the correct order
-        // Gamma_1 if firstBoundary = true, else Gamma_2
-        if (firstBoundary){
-            nodeIndices.swap(edge1_);
+    const void getBoundaryNodes(std::vector<int>& nodeIndices, bool edge2 = true) {
+        if (edge2){
+            nodeIndices = edge2_;
         }
         else {
-            nodeIndices.swap(edge2_);
+            nodeIndices = edge1_;
         }
+        return;
     }
 
-    const int getNbNodes() {
-        return nb_nodes_;
-    }
+
 
 
 }; // end class mesh
 
 
-// Appends values from a string into a (row)std::vector and returns the number of elements in the std::vector (= #columns).
-template<class T>
-int ReadNumbers( const string & s, std::vector <T>& v ) {
-    istringstream is( s );
-    double n;
-    //This loop, intuitively, means "keep reading values from is into n, and as long as a value can be read, continue looping."
-    while( is >> n ) {
-        // Adds a new element at the end of the std::vector, after its current last element.
-        v.push_back( n );
-    }
-    return v.size();
-}
-
 
 // Imports al the numbers from a txt file into a one dimensional std::vector.
 template<class T>
-void import_matrix_from_txt_file(const char* filename_X, std::vector <T>& v, int& rows, int& cols){
+void import_matrix_from_txt_file(const char* filename_X, std::vector <T>& v){
 
-    ifstream file_X;
-    string line;
+    std::ifstream file_X;
+    int current;
 
     file_X.open(filename_X);
     if (file_X.is_open()) {
-        int i=0;
-        getline(file_X, line);
-
-
-        cols =ReadNumbers( line, v );
-        cout << "cols:" << cols << endl;
 
         // Loop over al the rows of the matrix in the txt file.
         // eof = "end of file."
-        while (!file_X.eof()) {
-            i = i+1;
-            getline(file_X, line);
-            ReadNumbers( line, v );
-    }
-
-        rows=i;
-        cout << "rows :" << rows << endl;
-        if(rows >32766) cout<< "N must be smaller than MAX_INT";
-
-        file_X.close();
-    }
-
-    else{
-        cout << "file open failed";
-    }
-
-    // Print out the imported std::vector.
-    cout << "v:" << endl;
-    for (int i=0;i<rows;i++){
-        for (int j=0;j<cols;j++){
-            cout << v[i*cols+j] << "\t" ;
+        while (file_X >> current) {
+          v.push_back(current);
         }
-        cout << endl;
+        file_X.close();
+        std::cout << "Matrix read succes";
     }
+    else{
+        std::cout << "file open failed";
+    }
+
 }
 
 
 // Load mesh from text files.
-void loadMesh(std::vector <float> Xpoint, std::vector <float> Ypoint, std::vector <int> triangles, std::vector <int> edge) {
+void loadMesh(std::vector <float> Xpoint, std::vector <float> Ypoint, std::vector <int> triangles, std::vector <int> edge1, std::vector<int> edge2) {
     // loading X-coordinates from txt file
     // std::vector <float> Xpoints;
-    int xnbpoints=0;
-    int xpointRows=0;
-    import_matrix_from_txt_file("Xpoints.txt",Xpoint,xpointRows,xnbpoints);
+    meshClass::import_matrix_from_txt_file("Xpoints.txt", Xpoint);
 
     // loading Y-coordinates from txt file
     // std::vector <float> Ypoints;
-    int ynbpoints=0;
-    int ypointRows=0;
-    import_matrix_from_txt_file("Ypoints.txt",Ypoint,ypointRows,ynbpoints);
+    meshClass::import_matrix_from_txt_file("Ypoints.txt",Ypoint);
 
     // loading point indices of triangles from txt file
     // std::vector <int> triangles;
-    int triangleRows=0;
-    int nbtriangles=0;
-    import_matrix_from_txt_file("triangleLabels.txt",triangles,triangleRows,nbtriangles);
+    meshClass::import_matrix_from_txt_file("triangleLabels.txt",triangles);
 
     // loading point indices of edge from txt file
     // std::vector <int> edge;
-    int edgeRows=0;
-    int nbedge=0;
-    import_matrix_from_txt_file("edgeLabels.txt",edge,edgeRows,nbedge);
+    meshClass::import_matrix_from_txt_file("edge1Labels.txt",edge1);
+
+    // loading point indices of edge from txt file
+    // std::vector <int> edge;
+    meshClass::import_matrix_from_txt_file("edge2Labels.txt",edge2);
 }
+
+int lengthPoints = getMeshLengths(std::vector<int> sizes){
+  meshClass::import_matrix_from_txt_file("sizes.txt", sizes);
+  return;
+}
+
 
 
 } // end namespace std

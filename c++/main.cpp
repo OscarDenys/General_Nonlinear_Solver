@@ -19,18 +19,26 @@ int main() {
     //      "|\"
     //      "|_\"
     //
-    vector<float> Xpoint{0,0,0.5};
-    vector<float> Ypoint{0,1,0};
-    vector<int> triangles{1,2,3};
-    vector<int> edge{2,3,1};
-    std::mesh testMesh(Xpoint,Ypoint,triangles,edge);
+    //vector<float> Xpoint{0,0,0.5};
+    //vector<float> Ypoint{0,1,0};
+    //vector<int> triangles{1,2,3};
+    //vector<int> edge{2,3,1};
+    //std::mesh testMesh(Xpoint,Ypoint,triangles,edge);
     // -----
 
     // load mesh into variable   myMesh -------------------
     // vector<float> Xpoints, Ypoints;
     // vector<int> triangles, edge;
-    loadMesh(Xpoint,Ypoint,triangles,edge);
-    std::mesh myMesh(Xpoint,Ypoint,triangles,edge);
+    vector<int> sizes(4);
+    // sizes = [points.length, triangles.length, edge1.length, edge2.length]
+    meshClass::getMeshLengths(sizes);
+    vector<float> Xpoint(sizes[0]);
+    vector<float> Ypoint(sizes[0]);
+    vector<int> triangles(sizes[1]);
+    vector<int> edge1(sizes[2]);
+    vector<int> edge2(sizes[3]);
+    loadMesh(Xpoint,Ypoint,triangles,edge1,edge2);
+    meshClass::mesh myMesh(Xpoint,Ypoint,triangles,edge1,edge2);
     // ----------------------------------------------------
 
 
