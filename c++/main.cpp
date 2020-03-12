@@ -125,7 +125,7 @@ int main() {
     for (int i = 0; i<C0.size();i++){
       myFile<<C0[i]<<" ";
     }
-    myFile<<"];";
+    myFile<<"]';";
     std::cout<<std::endl;
     // Functie die second integral evalueert voor gegeven C --> H(c)
     Eigen::VectorXd H(2*M);
