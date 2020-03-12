@@ -9,7 +9,7 @@
 #include "Eigen/SparseCholesky"
 
 
-using namespace std;
+namespace std {
 
 
 int main() {
@@ -31,14 +31,14 @@ int main() {
     // vector<int> triangles, edge;
     vector<int> sizes(4);
     // sizes = [points.length, triangles.length, edge1.length, edge2.length]
-    meshClass::getMeshLengths(sizes);
+    std::getMeshLengths(sizes);
     vector<float> Xpoint(sizes[0]);
     vector<float> Ypoint(sizes[0]);
     vector<int> triangles(sizes[1]);
     vector<int> edge1(sizes[2]);
     vector<int> edge2(sizes[3]);
     loadMesh(Xpoint,Ypoint,triangles,edge1,edge2);
-    meshClass::mesh myMesh(Xpoint,Ypoint,triangles,edge1,edge2);
+    std::mesh myMesh(Xpoint,Ypoint,triangles,edge1,edge2);
     // ----------------------------------------------------
 
 
@@ -99,3 +99,4 @@ int main() {
 
     return 0;
 }
+};

@@ -1,5 +1,5 @@
-#ifndef mesh_hpp
-#define mesh_hpp
+#ifndef std_mesh_hpp
+#define std_mesh_hpp
 #include <fstream>
 #include <string>
 #include <vector>
@@ -8,27 +8,25 @@
 #include <algorithm>
 #include <cassert>
 
-namespace meshClass{
+namespace std{
 
 class mesh{
-
     private:
       const std::vector<float> Xpoint_;
       const std::vector<float> Ypoint_;
-      std::vector<int> triangles_;
-      std::vector<int> edge1_;
-      std::vector<int> edge2_;
+      const std::vector<int> triangles_;
+      const std::vector<int> edge1_;
+      const std::vector<int> edge2_;
 
     public:
     mesh(std::vector<float> Xpoint, std::vector<float> Ypoint, std::vector<int> triangles, std::vector<int> edge1, std::vector<int> edge2);
 
-
     const int getNbElements();
     const int getNbNodes();
-    const void getElement(int elementIndex, std::vector<int> &nodeIndices);
-    const void getNodeCoordinates(int nodeIndex, std::vector<float> coordinates);
-    const int getNbBoundaryNodes(bool edge2 = true);
-    const void getBoundaryNodes(std::vector<int>& nodeIndices, bool edge2 = true);
+    void getElement(int elementIndex, std::vector<int> &nodeIndices);
+    void getNodeCoordinates(int nodeIndex, std::vector<float> coordinates);
+    int getNbBoundaryNodes(bool edge2 = true);
+    void getBoundaryNodes(std::vector<int>& nodeIndices, bool edge2 = true);
 
 
 }; // end class mesh
@@ -45,7 +43,7 @@ void import_matrix_from_txt_file(const char* filename_X, std::vector<T>& v);
 // Load mesh from text files.
 void loadMesh(std::vector<float> Xpoint, std::vector<float> Ypoint, std::vector<int> triangles, std::vector<int> edge1, std::vector<int> edge2);
 
-int lengthPoints = getMeshLengths(std::vector<int> sizes);
+void getMeshLengths(std::vector<int> sizes);
 
 }
 
