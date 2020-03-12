@@ -19,18 +19,26 @@ int main() {
     //      "|\"
     //      "|_\"
     //
-    vector<float> Xpoint{0,0,0.5};
-    vector<float> Ypoint{0,1,0};
-    vector<int> triangles{1,2,3};
-    vector<int> edge{2,3,1};
-    std::mesh testMesh(Xpoint,Ypoint,triangles,edge);
+    //vector<float> Xpoint{0,0,0.5};
+    //vector<float> Ypoint{0,1,0};
+    //vector<int> triangles{1,2,3};
+    //vector<int> edge{2,3,1};
+    //std::mesh testMesh(Xpoint,Ypoint,triangles,edge);
     // -----
 
     // load mesh into variable   myMesh -------------------
     // vector<float> Xpoints, Ypoints;
     // vector<int> triangles, edge;
-    loadMesh(Xpoint,Ypoint,triangles,edge);
-    std::mesh myMesh(Xpoint,Ypoint,triangles,edge);
+    vector<int> sizes(4);
+    // sizes = [points.length, triangles.length, edge1.length, edge2.length]
+    std::getMeshLengths(sizes);
+    vector<float> Xpoint(sizes[0]);
+    vector<float> Ypoint(sizes[0]);
+    vector<int> triangles(sizes[1]);
+    vector<int> edge1(sizes[2]);
+    vector<int> edge2(sizes[3]);
+    loadMesh(Xpoint,Ypoint,triangles,edge1,edge2);
+    std::mesh myMesh(Xpoint,Ypoint,triangles,edge1,edge2);
     // ----------------------------------------------------
 
 
@@ -39,13 +47,12 @@ int main() {
     // start: solve for C: (K+K_lin)C = -(f+f_lin)
 
     // Implementation:
-
-    vector<Eigen::Triplet<double>> KmatrixTriplets;
-    vector<Eigen::Triplet<double>> KLinMatrixTriplets;
     int M = myMesh.getNbNodes();
     int nbBoundaryNodes = myMesh.getNbBoundaryNodes();
-    KmatrixTriplets.reserve(2*9*M);
-    KLinMatrixTriplets.reserve(2*9*M+2*3*nbBoundaryNodes);
+    vector<Eigen::Triplet<double>> KmatrixTriplets(2*9*M);
+    vector<Eigen::Triplet<double>> KLinMatrixTriplets(2*9*M+2*3*nbBoundaryNodes);
+    //KmatrixTriplets.reserve(2*9*M);
+    //KLinMatrixTriplets.reserve(2*9*M+2*3*nbBoundaryNodes);
     Eigen::VectorXd f(2*M);
     Eigen::VectorXd f_lin(2*M);
 

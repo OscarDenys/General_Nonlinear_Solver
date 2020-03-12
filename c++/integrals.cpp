@@ -9,24 +9,24 @@
 
 typedef Eigen::Triplet<double> Trip;
 
-// typedef to switch efficiently between float and double precision would be a good idea. 
+// typedef to switch efficiently between float and double precision would be a good idea.
 //  Because from the moment a number of single precision is used in a calculation this imediately makes the result single precision.
 typedef double prec;
-//typedef float prec; 
+//typedef float prec;
 
 namespace std {
 
-    void integral1(mesh &myMesh, std::vector<Trip> &K){
-        // nodes --> list met nodes van mesh (label, x, y) 
+    void integral1(std::mesh &myMesh, std::vector<Trip> &K){
+        // nodes --> list met nodes van mesh (label, x, y)
         //--> !!! label = index in list dus points accesen met Xpoint(index) en Ypoint(index), isOnEdge(index) geeft een integer: 0 (=niet op edge), 1 of 2.
-        
-        // elements --> list met elements van mesh (node1, node2, node3, boundary(integer))  
+
+        // elements --> list met elements van mesh (node1, node2, node3, boundary(integer))
         //--> !!! boundary staat per node ipv per element dus Element(elementIndex) geeft (nodeIndex1,nodeIndex2,nodeIndex3).
 
         std::vector<int> currentElement(3);
         std::vector<float> P1(2), P2(2), P3(2);
         int n1, n2, n3;
-        double det_jac, temp, resultU, resultV;
+        double det_jac, temp;
         std::vector<double> commonPart(2), result(2);
         int nbNodes = myMesh.getNbNodes(); // TODO check if this works;
 
@@ -112,7 +112,7 @@ namespace std {
         K.push_back(Trip(n3-1, n3-1, temp*result[0]));
         K.push_back(Trip(nbNodes+n3-1, nbNodes+n3-1, temp*result[1]));
         }
-        
+
     } // integral1()
 
     void integral2lin(mesh &myMesh, vector<Trip> & K_lin, Eigen::VectorXd &f_lin) {
@@ -303,5 +303,59 @@ namespace std {
         f(currNode) -= rho_v* C_vamb * k_prev*(2*r_curr+r_prev)/6;
 
     } // integral3()
+
+    double detJac(vector<float> P1, vector<float> P2, vector<float> P3) {
+        return double(P1[1]*P2[0] - P1[0]*P2[1] + P1[0]*P3[1] - P1[1]*P3[0] - P2[0]*P3[1] + P2[1]*P3[0]); // Bewerking op single prec floats opslaan in double precision float mag???
+    } // detJac                                                                                             //--> ja maar niet nodig want resultaat is ook single precision
+
+
+    // Overleaf p3: f1, f2 & f3
+    void applySigmaAndAddCommonPart(std::vector<double> &result, std::vector<double> const &commonPart){
+        // TODO: volgens wiskundige afleiding moet sigma_uz maal r gedeelte en andersom, dit is niet hoe wij het in MATLAB doen!!!
+        result[0] = sigma_uz*commonPart[0] + sigma_ur*commonPart[1];
+        result[1] = sigma_vz*commonPart[0] + sigma_vr*commonPart[1];
+
+        return;
+    } // applySigmaAndAddCommonPart()
+
+    // respiration kinetics: R - formula (3)
+    void evaluateRespiration(int nodeIndex, Eigen::VectorXd &prevSol, double &Ru, double &Rv) {
+        // evaluate the respiratory function (formula (3) of assignement) on the node with given index
+        // return the values in the doubles Ru and Rv
+        // the argument prevSol contains the solution vector of c_i of the previous iteration
+        int M = prevSol.size()/2;
+        assert(nodeIndex < M);
+
+        Ru = evaluateRu(prevSol[nodeIndex],prevSol[M+nodeIndex]);
+        Rv = evaluateRv(prevSol[nodeIndex],prevSol[M+nodeIndex], Ru);
+    }
+
+    void evaluateRespiration(int nodeIndex1, int nodeIndex2, Eigen::VectorXd &prevSol, double &Ru, double &Rv) {
+        // evaluate the respiratory function (formula (3) of assignement) halfway between two nodes
+        // with given index
+        // return the values in the doubles Ru and Rv
+        // the argument prevSol contains the solution vector of c_i of the previous iteration
+        int M = prevSol.size()/2;
+        assert(nodeIndex1 < M);
+        assert(nodeIndex2 < M);
+
+        double Cu = (prevSol[nodeIndex1]+prevSol[nodeIndex2])/2;
+        double Cv = (prevSol[M+nodeIndex1]+prevSol[M+nodeIndex2])/2;
+
+        Ru = evaluateRu(Cu,Cv);
+        Rv = evaluateRv(Cu,Cv,Ru);
+    }
+
+    double evaluateRu(double Cu, double Cv) {
+        // evaluate Ru following formula (3) of the assignement
+
+        return V_mu * Cu / ((K_mu+Cu)*(1+ Cv/K_mv));
+    }
+
+    double evaluateRv(double Cu, double Cv, double Ru) {
+        // evaluate Rv following formula (3) of the assignement
+
+        return r_q*Ru + V_mfv / (1+ Cu/K_mfu);
+    }
 
 } // namespace std

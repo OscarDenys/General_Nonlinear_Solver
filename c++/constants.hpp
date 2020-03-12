@@ -9,7 +9,7 @@ namespace std {
     float T_cel = 25.0;
     float nu_u = 20.8 / 100;
     float nu_v = 0.04 / 100;
-    std::vector<float> setup = {T_cel, nu_u, nu_v};
+    
 
 
     // --- MODEL PARAMETERS:
