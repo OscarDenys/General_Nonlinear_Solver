@@ -42,7 +42,7 @@ void mesh::getElement(int elementIndex, std::vector<int> &nodeIndices) {
     nodeIndices[2] = triangles_[3*elementIndex+2];
 }
 
-void mesh::getNodeCoordinates(int nodeIndex, std::vector<float> coordinates) {
+void mesh::getNodeCoordinates(int nodeIndex, std::vector<float>& coordinates) {
     assert (coordinates.size() == 2);
     coordinates[0] = Xpoint_[nodeIndex];
     coordinates[1] = Ypoint_[nodeIndex];

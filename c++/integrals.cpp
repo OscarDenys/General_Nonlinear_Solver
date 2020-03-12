@@ -40,6 +40,7 @@ namespace std {
         myMesh.getNodeCoordinates(n3, P3);
 
         det_jac = detJac(P1,P2,P3);
+        
         temp = (P1[0] + P2[0] + P3[0])/(6*det_jac);
 
         // ---------------------------------------------------------------------------------

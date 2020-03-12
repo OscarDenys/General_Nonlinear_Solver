@@ -24,7 +24,7 @@ class mesh{
     const int getNbElements();
     const int getNbNodes();
     void getElement(int elementIndex, std::vector<int> &nodeIndices);
-    void getNodeCoordinates(int nodeIndex, std::vector<float> coordinates);
+    void getNodeCoordinates(int nodeIndex, std::vector<float>& coordinates);
     int getNbBoundaryNodes(bool edge2 = true);
     void getBoundaryNodes(std::vector<int>& nodeIndices, bool edge2 = true);
 
