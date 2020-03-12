@@ -79,23 +79,23 @@ edge1Labels = [1 3:34 2];		% vertical edge, top to bottom
 edge2Labels = [1 83:-1:35 2];	% round edge, top to bottom
 sizes = [length(Points(1,:)), length(triangleLabels), length(edge1Labels), length(edge2Labels) ];
 
-writematrix(Points(1,:),'Xpoints.txt','Delimiter',' ')  ;
-type Xpoints.txt;
+writematrix(Points(1,:),'../c++/mesh1/Xpoints.txt','Delimiter',' ')  ;
 
-writematrix(Points(2,:),'Ypoints.txt','Delimiter',' ')  ;
-type Ypoints.txt;
 
-writematrix(edge1Labels-1,'edge1Labels.txt','Delimiter',' ');  
-type edge1Labels.txt;
+writematrix(Points(2,:),'../c++/mesh1/Ypoints.txt','Delimiter',' ')  ;
 
-writematrix(edge2Labels-1,'edge2Labels.txt','Delimiter',' ');  
-type edge2Labels.txt;
 
-writematrix(triangleLabels-1,'triangleLabels.txt','Delimiter',' ');  
-type triangleLabels.txt;   
+writematrix(edge1Labels-1,'../c++/mesh1/edge1Labels.txt','Delimiter',' ');  
 
-writematrix(sizes,'sizes.txt','Delimiter',' ');  
-type sizes.txt;   
+
+writematrix(edge2Labels-1,'../c++/mesh1/edge2Labels.txt','Delimiter',' ');  
+
+
+writematrix(triangleLabels-1,'../c++/mesh1/triangleLabels.txt','Delimiter',' ');  
+  
+
+writematrix(sizes,'../c++/mesh1/sizes.txt','Delimiter',' ');  
+  
         
 %% Get initial solution (linearisation) & stiffness matrix
 global nodes
