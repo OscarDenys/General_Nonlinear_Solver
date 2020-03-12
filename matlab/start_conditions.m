@@ -85,13 +85,13 @@ type Xpoints.txt;
 writematrix(Points(2,:),'Ypoints.txt','Delimiter',' ')  ;
 type Ypoints.txt;
 
-writematrix(edge1Labels,'edge1Labels.txt','Delimiter',' ');  
+writematrix(edge1Labels-1,'edge1Labels.txt','Delimiter',' ');  
 type edge1Labels.txt;
 
-writematrix(edge2Labels,'edge2Labels.txt','Delimiter',' ');  
+writematrix(edge2Labels-1,'edge2Labels.txt','Delimiter',' ');  
 type edge2Labels.txt;
 
-writematrix(triangleLabels,'triangleLabels.txt','Delimiter',' ');  
+writematrix(triangleLabels-1,'triangleLabels.txt','Delimiter',' ');  
 type triangleLabels.txt;   
 
 writematrix(sizes,'sizes.txt','Delimiter',' ');  
