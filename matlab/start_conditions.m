@@ -70,12 +70,20 @@ subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 0.2]); axis off;
 Points = p;
 edgeLabels = e(1,:);
 triangleLabels = t(1:3,:);
+edge1Labels = [1 3:34 2];		% vertical edge, top to bottom
+edge2Labels = [1 58:-1:35 2];	% round edge, top to bottom
 
 writematrix(Points,'points.txt','Delimiter',' ')  ;
 type points.txt;
 
 writematrix(edgeLabels,'edgeLabels.txt','Delimiter',' ');  
 type edgeLabels.txt;
+
+writematrix(edge1Labels,'edge1Labels.txt','Delimiter',' ');  
+type edge1Labels.txt;
+
+writematrix(edge2Labels,'edge2Labels.txt','Delimiter',' ');  
+type edge2Labels.txt;
 
 writematrix(triangleLabels,'triangleLabels.txt','Delimiter',' ');  
 type triangleLabels.txt;     
