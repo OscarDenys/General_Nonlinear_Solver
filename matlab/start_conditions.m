@@ -52,7 +52,10 @@ pgon = polyshape(x,y);      % create polygon from (x,y) points
 tr = triangulation(pgon);
 
 tnodes = [x; y];
-telements = tr.ConnectivityList';      
+telements = tr.ConnectivityList';   
+
+global nodes
+nodes = mesh.Nodes;
 
 geometryFromMesh(model,tnodes,telements);   % create 
 clear tnodes telements tr pgon;
@@ -61,6 +64,7 @@ mesh = generateMesh(model,'GeometricOrder','linear','Hmax',0.005,'Hmin',0.0005);
 figure(1);
 subplot(121); pdegplot(model,'EdgeLabels','off'); ylim([0 0.2]); axis off;
 subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 0.2]); axis off;
+
 
 
 %% export mesh to text file
@@ -98,8 +102,8 @@ writematrix(sizes,'../c++/mesh1/sizes.txt','Delimiter',' ');
   
         
 %% Get initial solution (linearisation) & stiffness matrix
-global nodes
-nodes = mesh.Nodes;
+
+
 % Get stiffness matrix K and constant term f:
 [K, K_lin, f, f_lin] = create_stiffness(mesh);
 f_lin_gross = create_lin_int2(mesh);
@@ -115,20 +119,20 @@ figure(1); clf;
 subplot(121); hold on;
 %pdeplot(model,'XYData',C_0(1:length(nodes)));
 title('O_2 concentration');
-%scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
-trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+%trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
 %shading interp
-colorbar();
+%colorbar();
 
 
 subplot(122);
 hold on;
 %pdeplot(model,'XYData',C_0(length(nodes)+1:end));
 title('CO_2 concentration');
-%scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
-trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+%trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
 %shading interp
-colorbar();
+%colorbar();
 
 %% Solve nonlinear system (with intermediate plots) 
 options = optimoptions('fsolve',...
