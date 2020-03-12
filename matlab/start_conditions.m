@@ -76,7 +76,7 @@ for i=1:length(t(1,:))
     end
 end 
 edge1Labels = [1 3:34 2];		% vertical edge, top to bottom
-edge2Labels = [1 58:-1:35 2];	% round edge, top to bottom
+edge2Labels = [1 83:-1:35 2];	% round edge, top to bottom
 sizes = [length(Points(1,:)), length(triangleLabels), length(edge1Labels), length(edge2Labels) ];
 
 writematrix(Points(1,:),'Xpoints.txt','Delimiter',' ')  ;
