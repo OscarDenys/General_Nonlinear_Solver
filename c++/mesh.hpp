@@ -41,9 +41,9 @@ template<class T>
 void import_matrix_from_txt_file(const char* filename_X, std::vector<T>& v);
 
 // Load mesh from text files.
-void loadMesh(std::vector<float> Xpoint, std::vector<float> Ypoint, std::vector<int> triangles, std::vector<int> edge1, std::vector<int> edge2);
+void loadMesh(std::vector<float>& Xpoint, std::vector<float>& Ypoint, std::vector<int>& triangles, std::vector<int>& edge1, std::vector<int>& edge2);
 
-void getMeshLengths(std::vector<int> sizes);
+void getMeshLengths(std::vector<int>& sizes);
 
 }
 

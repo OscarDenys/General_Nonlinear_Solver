@@ -22,7 +22,8 @@ mesh::mesh(std::vector<float> Xpoint, std::vector<float> Ypoint, std::vector<int
     {
         assert(Xpoint_.size() == Ypoint_.size());
         assert(triangles_.size() % 3 == 0);
-    }
+        std::cout<<"Made mesh..."<<std::endl;
+    };
 
 
 const int mesh::getNbElements() {
@@ -71,18 +72,20 @@ void mesh::getBoundaryNodes(std::vector<int>& nodeIndices, bool edge2) {
 
 // Imports al the numbers from a txt file into a one dimensional std::vector.
 template<class T>
-void import_matrix_from_txt_file(const char* filename_X, std::vector <T>& v){
+void import_matrix_from_txt_file(const char* filename_X, std::vector<T>& v){
 
     std::ifstream file_X;
-    int current;
+    T current;
 
     file_X.open(filename_X);
     if (file_X.is_open()) {
 
         // Loop over al the rows of the matrix in the txt file.
         // eof = "end of file."
+        int i = 0;
         while (file_X >> current) {
-          v.push_back(current);
+          v[i] = current;
+          i++;
         }
         file_X.close();
         std::cout << "Matrix read succes";
@@ -95,31 +98,31 @@ void import_matrix_from_txt_file(const char* filename_X, std::vector <T>& v){
 
 
 // Load mesh from text files.
-void loadMesh(std::vector <float> Xpoint, std::vector <float> Ypoint, std::vector <int> triangles, std::vector <int> edge1, std::vector<int> edge2) {
+void loadMesh(std::vector<float>& Xpoint, std::vector<float>& Ypoint, std::vector<int>& triangles, std::vector<int>& edge1, std::vector<int>& edge2) {
     // loading X-coordinates from txt file
     // std::vector <float> Xpoints;
-    import_matrix_from_txt_file("Xpoints.txt", Xpoint);
-
+    import_matrix_from_txt_file("./mesh1/Xpoints.txt", Xpoint);
+    std::cout<<"Xpoints: "<<Xpoint[0]<<std::endl;
     // loading Y-coordinates from txt file
     // std::vector <float> Ypoints;
-    import_matrix_from_txt_file("Ypoints.txt",Ypoint);
-
+    import_matrix_from_txt_file("./mesh1/Ypoints.txt",Ypoint);
+    std::cout<<"Ypoints: "<<Ypoint[0]<<std::endl;
     // loading point indices of triangles from txt file
     // std::vector <int> triangles;
-    import_matrix_from_txt_file("triangleLabels.txt",triangles);
-
+    import_matrix_from_txt_file("./mesh1/triangleLabels.txt",triangles);
+    std::cout<<"triangles: "<<triangles[0]<<std::endl;
     // loading point indices of edge from txt file
     // std::vector <int> edge;
-    import_matrix_from_txt_file("edge1Labels.txt",edge1);
-
+    import_matrix_from_txt_file("./mesh1/edge1Labels.txt",edge1);
+    std::cout<<"edge1Labels: "<<edge1[0]<<std::endl;
     // loading point indices of edge from txt file
     // std::vector <int> edge;
-    import_matrix_from_txt_file("edge2Labels.txt",edge2);
+    import_matrix_from_txt_file("./mesh1/edge2Labels.txt",edge2);
+    std::cout<<"edge1Labels: "<<edge2[0]<<std::endl;
 }
 
-void getMeshLengths(std::vector<int> sizes){
-  import_matrix_from_txt_file("sizes.txt", sizes);
-  return;
+void getMeshLengths(std::vector<int>& sizes){
+  import_matrix_from_txt_file("./mesh1/sizes.txt", sizes);
 }
 
 

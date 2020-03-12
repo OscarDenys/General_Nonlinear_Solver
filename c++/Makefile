@@ -5,10 +5,10 @@ SOURCES := main.cpp mesh.cpp integrals.cpp
 OBJS    := $(SOURCES:.cpp=.o) $(SOURCES:.cpp=_d.o) $(SOURCES:.cpp=_p.o)
 
 
-DEBUGFLAGS:= -g
+DEBUGFLAGS:= -g3
 RELEASEFLAGS:= -O0 -DNDEBUG
 PARALLELFLAGS:= -D_GLIBCXX_PARALLEL -fopenmp -pthread
-CXXFLAGS := -Wall -std=c++1z
+CXXFLAGS := -Wall -std=c++17
 LDFLAGS  :=
 LIBS =   -lstdc++
 OPENMPLIB =-L/usr/lib -fopenmp -pthread
@@ -29,11 +29,11 @@ info:
 
 
 integrals.o: integrals.cpp $(EXAMPLE_DEPS)
-	 @$(CXX) -c $(CXXFLAGS) $(RELEASEFLAGS) integrals.cpp
+	 @$(CXX) -c $(CXXFLAGS) $(DEBUGFLAGS) integrals.cpp
 mesh.o: mesh.cpp integrals.o $(EXAMPLE_DEPS)
-	 @$(CXX) -c $(CXXFLAGS) $(RELEASEFLAGS) mesh.cpp
+	 @$(CXX) -c $(CXXFLAGS) $(DEBUGFLAGS) mesh.cpp
 main.o: main.cpp mesh.o integrals.o $(EXAMPLE_DEPS)
-	 @$(CXX) -c $(CXXFLAGS) $(RELEASEFLAGS) main.cpp
+	 @$(CXX) -c $(CXXFLAGS) $(DEBUGFLAGS) main.cpp
 
 
 main: main.o mesh.o integrals.o

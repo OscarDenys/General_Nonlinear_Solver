@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include <sstream>
 #include "mesh.hpp"
 #include "integrals.hpp"
 #include "Eigen/SparseCore"
@@ -29,15 +28,21 @@ int main() {
     // load mesh into variable   myMesh -------------------
     // vector<float> Xpoints, Ypoints;
     // vector<int> triangles, edge;
-    vector<int> sizes(4);
+    vector<int> sizes(4, 1);
     // sizes = [points.length, triangles.length, edge1.length, edge2.length]
     std::getMeshLengths(sizes);
+    std::cout<<"sizes: ";
+    for (int i = 0; i<sizes.size();i++){
+      std::cout<<sizes[i]<<" ";
+    }
+    std::cout<<std::endl;
     vector<float> Xpoint(sizes[0]);
     vector<float> Ypoint(sizes[0]);
     vector<int> triangles(sizes[1]);
     vector<int> edge1(sizes[2]);
     vector<int> edge2(sizes[3]);
     loadMesh(Xpoint,Ypoint,triangles,edge1,edge2);
+
     std::mesh myMesh(Xpoint,Ypoint,triangles,edge1,edge2);
     // ----------------------------------------------------
 
@@ -49,6 +54,7 @@ int main() {
     // Implementation:
     int M = myMesh.getNbNodes();
     int nbBoundaryNodes = myMesh.getNbBoundaryNodes();
+    std::cout<<"been here"<<std::endl;
     vector<Eigen::Triplet<double>> KmatrixTriplets(2*9*M);
     vector<Eigen::Triplet<double>> KLinMatrixTriplets(2*9*M+2*3*nbBoundaryNodes);
     //KmatrixTriplets.reserve(2*9*M);
@@ -61,10 +67,12 @@ int main() {
     //     third integral (K3, f3)
     //  Sparse variables optellen tot eind resultaat
     //      K = K1+K3, f = f3
-
     integral1(myMesh, KmatrixTriplets); // Sibren_functions OK!
+    std::cout<<"been here, after int1"<<std::endl;
     integral2lin(myMesh, KLinMatrixTriplets, f_lin);
+    std::cout<<"been here, after int 2"<<std::endl;
     integral3(myMesh, KmatrixTriplets, f);
+    std::cout<<"been here, after int 3"<<std::endl;
 
     int sizeK = M*2;
     Eigen::SparseMatrix<double> Kmatrix(sizeK,sizeK);

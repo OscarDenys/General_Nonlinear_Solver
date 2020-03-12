@@ -5,7 +5,7 @@
 #include "Eigen/SparseCore"
 #include "mesh.hpp"
 #include "constants.hpp"
-#include "helpers.hpp"
+
 
 typedef Eigen::Triplet<double> Trip;
 
@@ -57,60 +57,60 @@ namespace std {
         // the part with sigma_z in [1]...
         applySigmaAndAddCommonPart(result, commonPart);
         // result is vector with [result_u, result_v]
-        K.push_back(Trip(n1-1, n1-1, temp*result[0]));
-        K.push_back(Trip(nbNodes+n1-1, nbNodes+n1-1, temp*result[1]));
+        K.push_back(Trip(n1, n1, temp*result[0]));
+        K.push_back(Trip(nbNodes+n1, nbNodes+n1, temp*result[1]));
 
         commonPart[0] = -(P3[0]-P2[0])*(P3[0]-P1[0]);
         commonPart[1] = (P2[1]-P3[1])*(P3[1]-P1[1]);
         applySigmaAndAddCommonPart(result, commonPart);
-        K.push_back(Trip(n1-1, n2-1, temp*result[0]));
-        K.push_back(Trip(nbNodes+n1-1, nbNodes+n2-1, temp*result[1]));
+        K.push_back(Trip(n1, n2, temp*result[0]));
+        K.push_back(Trip(nbNodes+n1, nbNodes+n2, temp*result[1]));
 
         commonPart[0] = (P3[0]-P2[0])*(P2[0]-P1[0]);
         commonPart[1] = -(P2[1]-P3[1])*(P2[1]-P1[1]);
         applySigmaAndAddCommonPart(result, commonPart);
-        K.push_back(Trip(n1-1, n3-1, temp*result[0]));
-        K.push_back(Trip(nbNodes+n1-1, nbNodes+n3-1, temp*result[1]));
+        K.push_back(Trip(n1, n3, temp*result[0]));
+        K.push_back(Trip(nbNodes+n1, nbNodes+n3, temp*result[1]));
 
         // ------
         // Node 2
         commonPart[0] = -(P3[0]-P2[0])*(P3[0]-P1[0]);
         commonPart[1] = (P2[1]-P3[1])*(P3[1]-P1[1]);
         applySigmaAndAddCommonPart(result, commonPart);
-        K.push_back(Trip(n2-1, n1-1, temp*result[0]));
-        K.push_back(Trip(nbNodes+n2-1, nbNodes+n1-1, temp*result[1]));
+        K.push_back(Trip(n2, n1, temp*result[0]));
+        K.push_back(Trip(nbNodes+n2, nbNodes+n1, temp*result[1]));
 
         commonPart[0] = pow(P3[0]-P1[0], 2);
         commonPart[1] = pow(P3[1]-P1[1], 2);
         applySigmaAndAddCommonPart(result, commonPart);
-        K.push_back(Trip(n2-1, n2-1, temp*result[0]));
-        K.push_back(Trip(nbNodes+n2-1, nbNodes+n2-1, temp*result[1]));
+        K.push_back(Trip(n2, n2, temp*result[0]));
+        K.push_back(Trip(nbNodes+n2, nbNodes+n2, temp*result[1]));
 
         commonPart[0] = -(P3[0]-P1[0])*(P2[0]-P1[0]);
         commonPart[1] = -(P3[1]-P1[1])*(P2[1]-P1[1]);
         applySigmaAndAddCommonPart(result, commonPart);
-        K.push_back(Trip(n2-1, n3-1, temp*result[0]));
-        K.push_back(Trip(nbNodes+n2-1, nbNodes+n3-1, temp*result[1]));
+        K.push_back(Trip(n2, n3, temp*result[0]));
+        K.push_back(Trip(nbNodes+n2, nbNodes+n3, temp*result[1]));
 
         // ------
         // Node 3
         commonPart[0] = (P3[0]-P2[0])*(P2[0]-P1[0]);
         commonPart[1] = -(P2[1]-P3[1])*(P2[1]-P1[1]);
         applySigmaAndAddCommonPart(result, commonPart);
-        K.push_back(Trip(n3-1, n1-1, temp*result[0]));
-        K.push_back(Trip(nbNodes+n3-1, nbNodes+n1-1, temp*result[1]));
+        K.push_back(Trip(n3, n1, temp*result[0]));
+        K.push_back(Trip(nbNodes+n3, nbNodes+n1, temp*result[1]));
 
         commonPart[0] = -(P3[0]-P1[0])*(P2[0]-P1[0]);
         commonPart[1] = -(P3[1]-P1[1])*(P2[1]-P1[1]);
         applySigmaAndAddCommonPart(result, commonPart);
-        K.push_back(Trip(n3-1, n2-1, temp*result[0]));
-        K.push_back(Trip(nbNodes+n3-1, nbNodes+n2-1, temp*result[1]));
+        K.push_back(Trip(n3, n2, temp*result[0]));
+        K.push_back(Trip(nbNodes+n3, nbNodes+n2, temp*result[1]));
 
         commonPart[0] = pow(P2[0]-P1[0], 2);
         commonPart[1] = pow(P2[1]-P1[1], 2);
         applySigmaAndAddCommonPart(result, commonPart);
-        K.push_back(Trip(n3-1, n3-1, temp*result[0]));
-        K.push_back(Trip(nbNodes+n3-1, nbNodes+n3-1, temp*result[1]));
+        K.push_back(Trip(n3, n3, temp*result[0]));
+        K.push_back(Trip(nbNodes+n3, nbNodes+n3, temp*result[1]));
         }
 
     } // integral1()
@@ -128,7 +128,7 @@ namespace std {
         double det_jac;
         int n1, n2, n3;
         vector<int> currElem(3);
-        vector<float> P1(2), P2(2), P3(3);
+        vector<float> P1(2), P2(2), P3(2);
 
         int nbElements = myMesh.getNbElements();
 
@@ -190,7 +190,7 @@ namespace std {
     } // integral2nonLinear()
 
 
-    void integral3(mesh &myMesh, vector<Trip> & K, Eigen::VectorXd & f) {
+    void integral3(mesh &myMesh, std::vector<Trip> & K, Eigen::VectorXd & f) {
         // create matrix K and vector f, where the line integral equals
         // (K*c + f)
 
