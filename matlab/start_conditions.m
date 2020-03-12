@@ -54,12 +54,13 @@ tr = triangulation(pgon);
 tnodes = [x; y];
 telements = tr.ConnectivityList';   
 
-global nodes
-nodes = mesh.Nodes;
 
 geometryFromMesh(model,tnodes,telements);   % create 
 clear tnodes telements tr pgon;
 mesh = generateMesh(model,'GeometricOrder','linear','Hmax',0.005,'Hmin',0.0005);
+
+global nodes
+nodes = mesh.Nodes;
 
 figure(1);
 subplot(121); pdegplot(model,'EdgeLabels','off'); ylim([0 0.2]); axis off;
