@@ -312,7 +312,6 @@ namespace std {
 
     // Overleaf p3: f1, f2 & f3
     void applySigmaAndAddCommonPart(std::vector<double> &result, std::vector<double> const &commonPart){
-        // TODO: volgens wiskundige afleiding moet sigma_uz maal r gedeelte en andersom, dit is niet hoe wij het in MATLAB doen!!!
         result[0] = sigma_uz*commonPart[0] + sigma_ur*commonPart[1];
         result[1] = sigma_vz*commonPart[0] + sigma_vr*commonPart[1];
 

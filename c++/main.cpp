@@ -111,14 +111,13 @@ int main() {
     KLinMatrix.setFromTriplets(KLinMatrixTriplets.begin(), KLinMatrixTriplets.end());
 
     KLinMatrix += Kmatrix;
-    f_lin -= f;
 
 
     // Solve voor lin oplossing (startwaarde)
     // start: solve for C: (K+K_lin)C = -(f+f_lin)
 
     Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
-    Eigen::VectorXd C0 = chol.solve(f_lin);
+    Eigen::VectorXd C0 = chol.solve(-f_lin);
 
     std::ofstream myFile;
     myFile.open("../matlab/cplusplus_output.m");
