@@ -5,7 +5,8 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
     nb_nodes = length(nodes);
     nb_elements_total = length(mesh.Elements(1,:));
 
-    boundary_nodes = [1 42:-1:19 2]; % Hardcode Hmin = 0.05
+    %boundary_nodes = [1 58:-1:25 2]; % Hardcode Hmin = 0.001;
+    boundary_nodes = [1 83:-1:35 2]; %'Hmax',0.005,'Hmin',0.0005
     %boundary_nodes = [1 8:-1:5 2]; % Hardcode Hmin = 0.25
     
     % all constants with prefix lin_ are used for the linearised second
@@ -184,10 +185,9 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
             rho = rho_v;
         end
         Dt = 1/length(boundary_nodes);
-        for i = 1:length(boundary_nodes)
+        for i = 2:length(boundary_nodes)-1
             node = boundary_nodes(i);
-
-            if (i~=1)
+  
                 prev_node = boundary_nodes(i-1);
 
                 Dr = (nodes(1,node)-nodes(1,prev_node));
@@ -199,9 +199,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
                 stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) = stiffness_matrix(a*nb_nodes+node,a*nb_nodes+node) + ...
                       rho* ( nodes(1,node)/4 + nodes(1,prev_node)/12 ) * k;
                 b(a*nb_nodes+node) = - rho* k * C_amb * (nodes(1,node)/3 + nodes(1,prev_node)/6);
-            end
-
-            if (i~=length(boundary_nodes))
+           
                 next_node = boundary_nodes(i+1);
 
                 Dr = (nodes(1,next_node)-nodes(1,node));
@@ -214,7 +212,6 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
                           rho*      k * ( nodes(1,node)/12 + nodes(1,next_node)/12 );
                 b(a*nb_nodes+node) = b(a*nb_nodes+node) + ...
                           rho* k * C_amb * (- nodes(1,node)/3 - nodes(1,next_node)/6 );
-            end
         end
     end
     K = stiffness_matrix;

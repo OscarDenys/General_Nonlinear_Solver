@@ -38,12 +38,16 @@ C_uamb = p_atm * nu_u / (R_g * T);
 C_vamb = p_atm * nu_v / (R_g * T);
 
 save('var.mat');
+vars = struct('T_cel',T_cel,'V_mu',num2cell(V_mu),'K_mu',num2cell(K_mu),'K_mv',num2cell(K_mv),...
+    'r_q',num2cell(r_q),'V_mfv',num2cell(V_mfv),'K_mfu',num2cell(K_mfu));
 
 %% generate mesh
 global model
 model = createpde;
 
-load('pear_data.mat');      % obtained via getPearShape.m
+load('pear_data.mat');% obtained via getPearShape.m
+x = x/5;
+y = y/5;
 pgon = polyshape(x,y);      % create polygon from (x,y) points
 tr = triangulation(pgon);
 
@@ -52,11 +56,11 @@ telements = tr.ConnectivityList';
 
 geometryFromMesh(model,tnodes,telements);   % create 
 clear tnodes telements tr pgon;
-mesh = generateMesh(model,'GeometricOrder','linear','Hmin',0.05);
+mesh = generateMesh(model,'GeometricOrder','linear','Hmax',0.005,'Hmin',0.0005);
 
 figure(1);
-subplot(121); pdegplot(model,'EdgeLabels','on'); ylim([0 1]); axis off;
-subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 1]); axis off;
+subplot(121); pdegplot(model,'EdgeLabels','off'); ylim([0 0.2]); axis off;
+subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 0.2]); axis off;
 
 
 %% export mesh to text file
@@ -90,23 +94,28 @@ C_0 = (K+K_lin) \ -(f+f_lin);
 % C_0(C_0<0) = -20000;
 
 %% Plot initial solution found by linearisation: 
-figure(2); clf;
+figure(1); clf;
 subplot(121); hold on;
-pdeplot(model,'XYData',C_0(1:length(nodes)));
+%pdeplot(model,'XYData',C_0(1:length(nodes)));
 title('O_2 concentration');
-% scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
-%scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
+%scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+%shading interp
+colorbar();
+
 
 subplot(122);
 hold on;
-pdeplot(model,'XYData',C_0(length(nodes)+1:end));
+%pdeplot(model,'XYData',C_0(length(nodes)+1:end));
 title('CO_2 concentration');
-%scatter3(-nodes(1,:), nodes(2,:), c(length(nodes)+1:end))
-
+%scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+%shading interp
+colorbar();
 
 %% Solve nonlinear system (with intermediate plots) 
 options = optimoptions('fsolve',...
-    'Display','iter','FunctionTolerance',1e-10, 'UseParallel', true, 'OutputFcn', @outfun);
+    'Display','iter','FunctionTolerance',1e-20, 'OptimalityTolerance',1e-10,'UseParallel', true, 'OutputFcn', @outfun);
 C = fsolve(fun, C_0, options );
 
 
@@ -128,26 +137,33 @@ pdeplot(model,'XYData',C(length(nodes)+1:end))
 %% Functions (load this before the rest...) 
 
 % Function used in iterative nonlinear solver: TODO should this be -f or +f?
-fun = @(C) 1e4*( K*C + f + eval_nonlinear(mesh, C));
+fun = @(C) 10e4*( K*C + f + eval_nonlinear(mesh, C, vars));
 
 function stop = outfun(C_, optimValues, stats)
+    
     global model nodes 
     figure(2); clf;
-    subplot(121); hold on;
-    pdeplot(model,'XYData',C_(1:length(nodes)));
-    title(['O_2 concentration, current norm(fval): ', num2str(norm(optimValues.fval,2))]);
-    % scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
-    %scatter3(-nodes(1,:), nodes(2,:), c(1:length(nodes)));
+        subplot(121); hold on;
+        %pdeplot(model,'XYData',C_0(1:length(nodes)));
+        title('O_2 concentration: nonlinear');
+        %scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+        trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_(1:length(nodes)));
+        colorbar();
 
-    subplot(122);
-    hold on;
-    pdeplot(model,'XYData',C_(length(nodes)+1:end));
-    title(['CO_2 concentration, current fval: ', num2str(norm(optimValues.fval,2))]);
+
+        subplot(122);
+        hold on;
+        %pdeplot(model,'XYData',C_0(length(nodes)+1:end));
+        title('CO_2 concentration: nonlinear');
+        %scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+        trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_(length(nodes)+1:end))
+        colorbar();
+
     
     stop = false; 
-%     if (norm(optimValues.fval,2) < .0000001)
-%         stop = true;
-%     end
+     if (optimValues.iteration == 50)
+         stop = true;
+     end
 
 end
 
