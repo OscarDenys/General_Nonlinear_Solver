@@ -16,7 +16,7 @@ typedef double prec;
 
 namespace std {
 
-    void integral1(mesh &myMesh, std::vector<Trip> &K){
+    void integral1(std::mesh &myMesh, std::vector<Trip> &K){
         // nodes --> list met nodes van mesh (label, x, y)
         //--> !!! label = index in list dus points accesen met Xpoint(index) en Ypoint(index), isOnEdge(index) geeft een integer: 0 (=niet op edge), 1 of 2.
 

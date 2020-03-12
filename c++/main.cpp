@@ -9,7 +9,7 @@
 #include "Eigen/SparseCholesky"
 
 
-namespace std {
+using namespace std;
 
 
 int main() {
@@ -47,13 +47,12 @@ int main() {
     // start: solve for C: (K+K_lin)C = -(f+f_lin)
 
     // Implementation:
-
-    vector<Eigen::Triplet<double>> KmatrixTriplets;
-    vector<Eigen::Triplet<double>> KLinMatrixTriplets;
     int M = myMesh.getNbNodes();
     int nbBoundaryNodes = myMesh.getNbBoundaryNodes();
-    KmatrixTriplets.reserve(2*9*M);
-    KLinMatrixTriplets.reserve(2*9*M+2*3*nbBoundaryNodes);
+    vector<Eigen::Triplet<double>> KmatrixTriplets(2*9*M);
+    vector<Eigen::Triplet<double>> KLinMatrixTriplets(2*9*M+2*3*nbBoundaryNodes);
+    //KmatrixTriplets.reserve(2*9*M);
+    //KLinMatrixTriplets.reserve(2*9*M+2*3*nbBoundaryNodes);
     Eigen::VectorXd f(2*M);
     Eigen::VectorXd f_lin(2*M);
 
@@ -99,4 +98,3 @@ int main() {
 
     return 0;
 }
-};

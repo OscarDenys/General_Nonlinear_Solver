@@ -8,7 +8,7 @@ typedef Eigen::Triplet<double> Trip;
 
 namespace std {
 
-    void integral1(mesh const &myMesh, std::vector<Trip> &K);
+    void integral1(std::mesh &myMesh, std::vector<Trip> &K);
 
     void integral2lin(mesh &myMesh, vector<Trip> & K_lin, Eigen::VectorXd & f_lin);
     void integral2nonlinear(mesh & myMesh, Eigen::VectorXd &H, Eigen::VectorXd &C);
@@ -22,7 +22,7 @@ namespace std {
     void evaluateRespiration(int nodeIndex1, int nodeIndex2, Eigen::VectorXd &prevSol, double &Ru, double &Rv);
     double evaluateRu(double Cu, double Cv);
     double evaluateRv(double Cu, double Cv, double Ru);
-    
+
 } // namespace std
 
 #endif
