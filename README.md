@@ -1,6 +1,27 @@
 # PME
 Project Mathematical Engineering
 
+## TODO vanaf 16/03:
+#### Noodzakelijk:
+- [X] done
+- [ ] vullen van matrices aanpassen naar nieuwe standaard
+  - [ ] main.cpp & .hpp
+  - [ ] integrals.cpp & .hpp
+- [ ] implementatie nonlinear solver
+- [ ] alle testscenarios uittesten
+  - [ ] C-waarden/plots opslaan (.m file?)
+#### Minder noodzakelijk, maar zeker niet overbodig
+- [ ] testrouine uitwerken (test.cpp)
+  - [ ] analytisch ?
+  - [ ] matlab ?
+- [ ] mesh creeren dat fijner is aan de rand dan in het midden
+- [ ] 
+
+## TODO tegen verdediging
+- [ ] verantwoording keuze mesh
+  - [ ] grootte driehoekjes
+
+
 ## Useful links and references:
 
 
