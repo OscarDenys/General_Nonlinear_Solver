@@ -123,21 +123,24 @@ C_0 = (K+K_lin) \ -(f+f_lin);
 
 %% Plot initial solution found by linearisation: 
 figure(1); clf;
-subplot(121); hold on;
-%pdeplot(model,'XYData',C_0(1:length(nodes)),'Contour','on');
-% pdeplot(model,'XYData',zeros(1,length(nodes)),'ZData',zeros(1,length(nodes)));
+subplot(221); hold on;
+pdeplot(model,'XYData',C_0(1:length(nodes)),'Contour','on','ColorMap','jet');
+subplot(223);
+pdeplot(model,'XYData',C_0(1,length(nodes)),'ZData',C_0(1,length(nodes)),'ColorMap','jet');
 title('O_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+% scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
 % trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
 % shading interp
 % colorbar();
 
 
-subplot(122);
+subplot(222);
 hold on;
-%pdeplot(model,'XYData',C_0(length(nodes)+1:end),'Contour','on','ColorMap','jet');
+pdeplot(model,'XYData',C_0(length(nodes)+1:end),'Contour','on','ColorMap','jet');
 title('CO_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+subplot(223);
+pdeplot(model,'XYData',C_0(length(nodes)+1:end),'ZData',C_0(length(nodes)+1:end),'ColorMap','jet');
+% scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
 % trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
 % shading interp
 % colorbar();
