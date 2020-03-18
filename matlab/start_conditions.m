@@ -116,8 +116,8 @@ C_0 = (K+K_lin) \ -(f+f_lin);
 %C_0(C_0<0) = 0;
 
 % Shift O2 upwards: 
-maximum = max(abs(C_0));
-C_0(1:length(nodes)) = maximum + C_0(1:length(nodes));
+%maximum = max(abs(C_0));
+%C_0(1:length(nodes)) = maximum + C_0(1:length(nodes));
 
 
 
@@ -165,7 +165,6 @@ scatter3(nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
 
 %% Functions (load this before the rest...) 
 
-% Function used in iterative nonlinear solver: TODO should this be -f or +f?
 fun = @(C) 10e4*( K*C + f + eval_nonlinear(mesh, C, vars));
 
 function stop = outfun(C_, optimValues, stats)
