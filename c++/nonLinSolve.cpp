@@ -218,13 +218,13 @@ main (void)
   fdf_params.trs = gsl_multilarge_nlinear_trs_dogleg;
   solve_system(x, &fdf, &fdf_params);
 
-  fdf_params.trs = gsl_multilarge_nlinear_trs_ddogleg;
-  solve_system(x, &fdf, &fdf_params);
+  //fdf_params.trs = gsl_multilarge_nlinear_trs_ddogleg;
+  //solve_system(x, &fdf, &fdf_params);
 
-  fdf_params.trs = gsl_multilarge_nlinear_trs_subspace2D;
-  solve_system(x, &fdf, &fdf_params);
+  //fdf_params.trs = gsl_multilarge_nlinear_trs_subspace2D;
+  //solve_system(x, &fdf, &fdf_params);
 
-  fdf_params.trs = gsl_multilarge_nlinear_trs_cgst;
+  fdf_params.trs = gsl_multilarge_nlinear_trs_cgst;// steihaug-toint, good for sparse Jacobian
   solve_system(x, &fdf, &fdf_params);
 
   gsl_vector_free(f);
