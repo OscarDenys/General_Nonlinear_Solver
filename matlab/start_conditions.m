@@ -125,20 +125,21 @@ C_0 = (K+K_lin) \ -(f+f_lin);
 figure(1); clf;
 subplot(221); hold on;
 pdeplot(model,'XYData',C_0(1:length(nodes)),'Contour','on','ColorMap','jet');
-subplot(223);
-pdeplot(model,'XYData',C_0(1,length(nodes)),'ZData',C_0(1,length(nodes)),'ColorMap','jet');
 title('O_2 concentration');
+subplot(223);
+pdeplot(model,'XYData',C_0(1:length(nodes)),'ZData',C_0(1:length(nodes)),'ColorMap','jet');
 % scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
 % trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
 % shading interp
 % colorbar();
 
 
+
 subplot(222);
 hold on;
 pdeplot(model,'XYData',C_0(length(nodes)+1:end),'Contour','on','ColorMap','jet');
 title('CO_2 concentration');
-subplot(223);
+subplot(224);
 pdeplot(model,'XYData',C_0(length(nodes)+1:end),'ZData',C_0(length(nodes)+1:end),'ColorMap','jet');
 % scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
 % trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
@@ -153,18 +154,29 @@ C = fsolve(fun, C_0, options );
 
 
 %% Plot result: 
+figure(1); clf;
+subplot(221); hold on;
+pdeplot(model,'XYData',C(1:length(nodes)),'Contour','on','ColorMap','jet');
+title('O_2 concentration: end result');
+subplot(223);
+pdeplot(model,'XYData',C(1:length(nodes)),'ZData',C(1:length(nodes)),'ColorMap','jet');
+% scatter3(nodes(1,:), nodes(2,:), C(1:length(nodes)));
+% trisurf(triangleLabels', nodes(1,:), nodes(2,:), C(1:length(nodes)));
+% shading interp
+% colorbar();
 
-figure(2); clf;
-subplot(121); hold on; title('O_2 concentration, end result');
-%pdeplot(model,'XYData',C(1:length(nodes)));
-scatter3(nodes(1,:), nodes(2,:), C(1:length(nodes)));
-%scatter3(nodes(1,:), nodes(2,:), c(1:length(nodes)));
 
-subplot(122);
-hold on; title('CO_2 concentration, end result');
-%pdeplot(model,'XYData',C(length(nodes)+1:end))
-scatter3(nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
 
+subplot(222);
+hold on;
+pdeplot(model,'XYData',C(length(nodes)+1:end),'Contour','on','ColorMap','jet');
+title('CO_2 concentration: end result');
+subplot(224);
+pdeplot(model,'XYData',C(length(nodes)+1:end),'ZData',C(length(nodes)+1:end),'ColorMap','jet');
+% scatter3(nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
+% trisurf(triangleLabels', nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
+% shading interp
+% colorbar();
 
 %% Functions (load this before the rest...) 
 
