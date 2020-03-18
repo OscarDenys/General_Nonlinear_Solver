@@ -46,8 +46,8 @@ global model
 model = createpde;
 
 load('pear_data.mat');% obtained via getPearShape.m
-x = x/5;
-y = y/5;
+x = x/5.2; x = x - x(1);
+y = y/5.2; y(end) = y(end-1); y = y-y(end);
 pgon = polyshape(x,y);      % create polygon from (x,y) points
 tr = triangulation(pgon);
 
@@ -57,12 +57,12 @@ telements = tr.ConnectivityList';
 
 geometryFromMesh(model,tnodes,telements);   % create 
 clear tnodes telements tr pgon;
-mesh = generateMesh(model,'GeometricOrder','linear','Hmax',0.005,'Hmin',0.0005);
+mesh = generateMesh(model,'GeometricOrder','linear','Hmax',0.005,'Hmin',0.0001, 'Hgrad', 2.0);
 
 global nodes
 nodes = mesh.Nodes;
 
-figure(1);
+figure(1); clf;
 subplot(121); pdegplot(model,'EdgeLabels','off'); ylim([0 0.2]); axis off;
 subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 0.2]); axis off;
 
@@ -80,8 +80,8 @@ for i=1:length(t(1,:))
         triangleLabels(3*(i-1)+j) = t(j,i);
     end
 end 
-edge1Labels = [1 3:34 2];		% vertical edge, top to bottom
-edge2Labels = [1 83:-1:35 2];	% round edge, top to bottom
+edge1Labels = [1 3:33 2];		% vertical edge, top to bottom
+edge2Labels = [1 80:-1:34 2];	% round edge, top to bottom
 sizes = [length(Points(1,:)), length(triangleLabels), length(edge1Labels), length(edge2Labels) ];
 
 writematrix(Points(1,:),'../c++/mesh1/Xpoints.txt','Delimiter',' ')  ;
@@ -113,27 +113,28 @@ f_lin_gross = create_lin_int2(mesh);
 C_0 = (K+K_lin) \ -(f+f_lin);
 %C_0 = K\-(f+f_lin_gross);
 
-% C_0(C_0<0) = -20000;
+% C_0(C_0<0) = 0;
 
 %% Plot initial solution found by linearisation: 
 figure(1); clf;
 subplot(121); hold on;
-%pdeplot(model,'XYData',C_0(1:length(nodes)));
+pdeplot(model,'XYData',C_0(1:length(nodes)),'Contour','on');
+% pdeplot(model,'XYData',zeros(1,length(nodes)),'ZData',zeros(1,length(nodes)));
 title('O_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
-%trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
-%shading interp
-%colorbar();
+%scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+% trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+% shading interp
+% colorbar();
 
 
 subplot(122);
 hold on;
-%pdeplot(model,'XYData',C_0(length(nodes)+1:end));
+pdeplot(model,'XYData',C_0(length(nodes)+1:end),'Contour','on','ColorMap','jet');
 title('CO_2 concentration');
-scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
-%trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
-%shading interp
-%colorbar();
+% scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+% trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
+% shading interp
+% colorbar();
 
 %% Solve nonlinear system (with intermediate plots) 
 options = optimoptions('fsolve',...
