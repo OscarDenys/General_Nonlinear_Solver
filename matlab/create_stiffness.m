@@ -46,7 +46,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
         dz_dy = P3(2) - P1(2);
         dz_dksi = P2(2) - P1(2);
         Jac = [[dr_dy, dr_dksi];[dz_dy, dz_dksi]];
-        det_jac = det(Jac);
+        det_jac = abs(det(Jac));
 
         % =====================   integraal 1 - (5)
         temp = (P1(1) + P2(1) + P3(1)) / 6 / det_jac;     
@@ -78,15 +78,15 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
 
 
    
-        % =====================   integraal 2 - lineair (5-)
+        % =====================   integraal 2 - lineair (5)
         % constant part
         A1 = det_jac/24* 120*lin_k*C_uamb *(2*P1(1) + P2(1) + P3(1));
         A2 = det_jac/24* 120*lin_k*C_uamb *(P1(1) + 2*P2(1) + P3(1));
         A3 = det_jac/24* 120*lin_k*C_uamb *(P1(1) + P2(1) + 2*P3(1));
         
-        f_lin(n1) = f_lin(n1) - A1;
-        f_lin(n2) = f_lin(n2) - A2;
-        f_lin(n3) = f_lin(n3) - A3;
+        f_lin(n1) = f_lin(n1) + A1;
+        f_lin(n2) = f_lin(n2) + A2;
+        f_lin(n3) = f_lin(n3) + A3;
         
         % part linear in c
 %         elem_stiff(1,1) = (6*P1(1) + 2*P2(1) + 2*P3(1)) *lin_k*det_jac;
@@ -185,7 +185,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
             rho = rho_v;
         end
         Dt = 1/length(boundary_nodes);
-        for i = 2:length(boundary_nodes)-1
+        for i = 3:length(boundary_nodes)-2
             node = boundary_nodes(i);
 %             if (i ~= 2)
                 prev_node = boundary_nodes(i-1);
