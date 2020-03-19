@@ -8,7 +8,7 @@
 typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> Trip;
 typedef Eigen::VectorXd vectxd;
-typedef Eigen::VectorXd matxd;
+typedef Eigen::MatrixXd matxd;
 
 
 
@@ -27,7 +27,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(vectxd trial_x, double (*fun)(vectxd (*Ffun)(vectxd), vectxd x), vectxd x0, vectxd Jpk, vectxd pk, double gamma, double beta){
+double line_search(vectxd trial_x, double (*fun)(vectxd), vectxd x0, vectxd Jpk, vectxd pk, double gamma, double beta){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -101,11 +101,25 @@ Scalar objective function.
 
 INPUT
 - Ffun: F(x)
+- x
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F(x))
 */
 double f(vectxd (*Ffun)(vectxd), vectxd x){
     vectxd F = (*Ffun)(x);
+    double f = 0.5*(F.dot(F));
+    return f;
+}
+
+/*
+Scalar objective function.
+
+INPUT
+- F = F(x) uitgewerkt voor een zekere x
+OUTPUT
+- f: (double) f(x) = 0.5*L2-norm(F)
+*/
+double f(vectxd F){
     double f = 0.5*(F.dot(F));
     return f;
 }
@@ -203,9 +217,10 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, vectxd (*Ffun)(vectxd
         
         // line search
         vectxd Jpk = grad.transpose()*pk;
-        line_search(x, f(Ffun,x), x, Jpk, pk, gamma, beta);
+        vectxd F = (*Ffun)(x);
+        line_search(x, f(F), x, Jpk, pk, gamma, beta);
     }
     
-    std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"
+    std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
     return;
 }
