@@ -17,8 +17,9 @@ Line search using Armijo conditions and backtracking.
 
 INPUT
 - fun: scalar function f = 0.5*L2-norm(F(x))
+- F: vectxd F = F(x) (input for f(F) = 0.5*L2-norm(F))
 - initial guess x0
-- Jpk: J is gradient of fun at x0, Jpk is J'*pk
+- Jpk: J is gradient(!) of fun at x0, Jpk is J'*pk (scalar)
 - pk: search direction
 - gamma: armijo condition scaling function
 - beta: backtracking parameter
@@ -27,7 +28,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(vectxd trial_x, double (*fun)(vectxd), vectxd x0, vectxd Jpk, vectxd pk, double gamma, double beta){
+double line_search(vectxd trial_x, double (*fun)(vectxd), vectxd F,  vectxd x0, double Jpk, vectxd pk, double gamma, double beta){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -72,7 +73,7 @@ void finite_difference_jacob(vectxd f0, spmat J, vectxd (*Ffun)(vectxd), vectxd 
         std::cout<< "finite_difference_jacob: x0 needs to be column vector"<< std::endl;
         x0.transpose(); 
     }
-    int Nx = x0.rows;
+    int Nx = x0.rows();
 
     // make sure fun returns a column vector
     f0 = (*Ffun)(x0);
@@ -80,20 +81,28 @@ void finite_difference_jacob(vectxd f0, spmat J, vectxd (*Ffun)(vectxd), vectxd 
         std::cout<< "finite_difference_jacob: fun needs to return a column vector"<< std::endl;
         f0.transpose();
     }
-    int Nf = f0.rows;
+    int Nf = f0.rows();
 
-    // initialize empty J (not sure if this is good practice memory-wise..)
+    // initialize empty J (this would be bad practice memory-wise..)
     //J = spmat(Nf,Nx);
 
     // perform finite difference jacobian evaluation
-    float h = 1e-6; // stepsize for first order approximation
-    for (int i = 1; i <= Nx; i++){
-        vectxd x = x0;
-        x[i] += h;
-        vectxd f = (*Ffun)(x);
-        J(:,i) = (f-f0)/h;
-    }
+    double h = 1e-6; // stepsize for first order approximation
+    std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
 
+    for (int j = 0; j < Nx; j++){
+        vectxd x = x0;
+        x(j) += h;
+        vectxd f = (*Ffun)(x);
+        vectxd Jcolj = (f-f0)*(1/h);
+
+        for ( int i = 0; i < Jcolj.size(); i++){
+            if (Jcolj(i) != 0){
+                tripletList.push_back(Trip(i, j, Jcolj(i)));
+            }
+        }
+    }
+    J.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
 /*
@@ -105,11 +114,13 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F(x))
 */
+/*
 double f(vectxd (*Ffun)(vectxd), vectxd x){
     vectxd F = (*Ffun)(x);
     double f = 0.5*(F.dot(F));
     return f;
 }
+*/
 
 /*
 Scalar objective function.
@@ -150,7 +161,7 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, vectxd (*Ffun)(vectxd
         std::cout<< "minimize_lm: x0 needs to be column vector"<< std::endl;
         x0.transpose(); 
     }
-    int Nx = x0.rows;
+    int Nx = x0.rows();
 
     // make sure fun returns a column vector
     vectxd F = (*Ffun)(x0);
@@ -158,11 +169,11 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, vectxd (*Ffun)(vectxd
         std::cout<< "minimize_lm: fun needs to return a column vector"<< std::endl;
         F.transpose();
     }
-    int Nf = F.rows;
+    int Nf = F.rows();
     
     // a log of the iterations
-    matxd x_iter(Nx, max_iters);
-    vectxd grad_iter(max_iters);
+    x_iter(Nx, max_iters);
+    grad_iter(max_iters);
 
     // line search parameters
     double gamma = 0.01; 
@@ -216,9 +227,9 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, vectxd (*Ffun)(vectxd
         // https://scicomp.stackexchange.com/questions/21343/solving-linear-equations-using-eigen
         
         // line search
-        vectxd Jpk = grad.transpose()*pk;
+        double Jpk = grad.dot(pk); 
         vectxd F = (*Ffun)(x);
-        line_search(x, f(F), x, Jpk, pk, gamma, beta);
+        line_search(x, f, F, x, Jpk, pk, gamma, beta);
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
