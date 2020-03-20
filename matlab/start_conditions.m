@@ -106,7 +106,7 @@ writematrix(sizes,'../c++/mesh1/sizes.txt','Delimiter',' ');
 
 
 % Get stiffness matrix K and constant term f:
-[K, K_lin, f, f_lin] = create_stiffness_2(mesh);
+[K, K_lin, f, f_lin] = create_stiffness(mesh);
 f_lin_gross = create_lin_int2(mesh);
 
 % First solution: 
@@ -149,9 +149,9 @@ pdeplot(model,'XYData',C_0(length(nodes)+1:end),'ZData',C_0(length(nodes)+1:end)
 %% Solve nonlinear system (with intermediate plots) 
 options = optimoptions('fsolve',...
     'Display','iter','FunctionTolerance',1e-20, 'OptimalityTolerance',1e-10,'UseParallel', true, 'OutputFcn', @outfun);
-C = fsolve(fun, C_0, options );
 
-
+[C,fval,exitflag,output, J] = fsolve(fun,C_0,options);
+% J is jacobian at solution of solver...
 
 %% Plot result: 
 figure(1); clf;
