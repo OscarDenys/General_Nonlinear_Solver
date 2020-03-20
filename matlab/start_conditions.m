@@ -106,7 +106,7 @@ writematrix(sizes,'../c++/mesh1/sizes.txt','Delimiter',' ');
 
 
 % Get stiffness matrix K and constant term f:
-[K, K_lin, f, f_lin] = create_stiffness(mesh);
+[K, K_lin, f, f_lin] = create_stiffness_2(mesh);
 f_lin_gross = create_lin_int2(mesh);
 
 % First solution: 
