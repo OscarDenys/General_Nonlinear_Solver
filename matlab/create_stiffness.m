@@ -80,9 +80,9 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
    
         % =====================   integraal 2 - lineair (5)
         % constant part
-        A1 = det_jac/24*120*lin_k*C_uamb *(2*P1(1) + P2(1) + P3(1));
-        A2 = det_jac/24*120*lin_k*C_uamb *(P1(1) + 2*P2(1) + P3(1));
-        A3 = det_jac/24*120*lin_k*C_uamb *(P1(1) + P2(1) + 2*P3(1));
+        A1 = det_jac/24* 120*lin_k*C_uamb *(2*P1(1) + P2(1) + P3(1));
+        A2 = det_jac/24* 120*lin_k*C_uamb *(P1(1) + 2*P2(1) + P3(1));
+        A3 = det_jac/24* 120*lin_k*C_uamb *(P1(1) + P2(1) + 2*P3(1));
         
         f_lin(n1) = f_lin(n1) + A1;
         f_lin(n2) = f_lin(n2) + A2;
