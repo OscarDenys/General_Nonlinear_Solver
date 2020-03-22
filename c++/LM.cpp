@@ -9,8 +9,9 @@ typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse mat
 typedef Eigen::Triplet<double> Trip;
 typedef Eigen::VectorXd vectxd;
 typedef Eigen::MatrixXd matxd;
+typedef Eigen::ArrayXXd arrayxxd;
 
-namespace LM {
+namespace std {
 
 /*
 Line search using Armijo conditions and backtracking.
@@ -28,7 +29,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(vectxd trial_x, double (*fun)(vectxd), vectxd F,  vectxd x0, double Jpk, vectxd pk, double gamma, double beta){
+double line_search(vectxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  vectxd x0, double Jpk, vectxd pk, double gamma, double beta){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -38,6 +39,7 @@ double line_search(vectxd trial_x, double (*fun)(vectxd), vectxd F,  vectxd x0, 
 
     // initialize t, evaluate function
     double t = 1;
+    arrayxxd x0 = x0.array();
     double f0 = (*fun)(x0);
 
     trial_x = x0 + t*pk;
@@ -66,7 +68,7 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(vectxd f0, spmat J, vectxd (*Ffun)(vectxd), vectxd x0){
+void finite_difference_jacob(vectxd f0, spmat J, arrayxxd (*Ffun)(vectxd), vectxd x0){
 
     // make sure x0 is a column vector 
     if (x0.cols() == 1){
@@ -93,7 +95,7 @@ void finite_difference_jacob(vectxd f0, spmat J, vectxd (*Ffun)(vectxd), vectxd 
     for (int j = 0; j < Nx; j++){
         vectxd x = x0;
         x(j) += h;
-        vectxd f = (*Ffun)(x);
+        arrayxxd f = (*Ffun)(x);
         vectxd Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
@@ -130,7 +132,7 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
-double f(vectxd F){
+double f(arrayxxd F){
     double f = 0.5*(F.dot(F));
     return f;
 }
@@ -150,7 +152,7 @@ OUTPUT
 - x_iter: each of the intermediate values xk
 - grad_iter: norm of gradient in each iteration
 */
-void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, vectxd (*Ffun)(vectxd), vectxd x0){
+void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0){
 
     // convergence tolerance
     double grad_tol = 1e-4;
@@ -228,7 +230,7 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, vectxd (*Ffun)(vectxd
         
         // line search
         double Jpk = grad.dot(pk); 
-        vectxd F = (*Ffun)(x);
+        arrayxxd F = (*Ffun)(x);
         line_search(x, f, F, x, Jpk, pk, gamma, beta);
     }
     
@@ -237,4 +239,4 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, vectxd (*Ffun)(vectxd
 }
 
 
-} // namespace LM
+} // end namespace std

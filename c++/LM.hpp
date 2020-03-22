@@ -9,8 +9,9 @@ typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse mat
 typedef Eigen::Triplet<double> Trip;
 typedef Eigen::VectorXd vectxd;
 typedef Eigen::MatrixXd matxd;
+typedef Eigen::ArrayXXd arrayxxd;
 
-namespace LM {
+namespace std {
 
 /*
 Line search using Armijo conditions and backtracking.
@@ -28,7 +29,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(vectxd trial_x, double (*fun)(vectxd), vectxd F,  vectxd x0, double Jpk, vectxd pk, double gamma, double beta);
+double line_search(vectxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  vectxd x0, double Jpk, vectxd pk, double gamma, double beta);
 
 /*
 Finite difference approximation of the Jacobian.
@@ -41,7 +42,7 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(vectxd f0, spmat J, vectxd (*Ffun)(vectxd), vectxd x0);
+void finite_difference_jacob(vectxd f0, spmat J, arrayxxd (*Ffun)(vectxd), vectxd x0);
 
 /*
 Scalar objective function.
@@ -80,6 +81,6 @@ OUTPUT
 - x_iter: each of the intermediate values xk
 - grad_iter: norm of gradient in each iteration
 */
-void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, vectxd (*Ffun)(vectxd), vectxd x0);
+void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
 
-} // namespace LM
+} // end namespace std
