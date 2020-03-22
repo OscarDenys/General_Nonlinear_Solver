@@ -10,7 +10,7 @@ typedef Eigen::Triplet<double> Trip;
 typedef Eigen::VectorXd vectxd;
 typedef Eigen::MatrixXd matxd;
 
-
+namespace LM {
 
 /*
 Line search using Armijo conditions and backtracking.
@@ -235,3 +235,6 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, vectxd (*Ffun)(vectxd
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
     return;
 }
+
+
+} // namespace LM
