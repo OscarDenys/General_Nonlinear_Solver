@@ -24,6 +24,7 @@ Project Mathematical Engineering
 
 ## Useful links and references:
 
+[Voorbeeldoplossingen](https://ars.els-cdn.com/content/image/1-s2.0-S0925521403000620-gr2.jpg?fbclid=IwAR2fcsDGRoT8xTUa5xH_oQFHkH4B_VK8erH2gbsT67V45WV5om2szAY3h6c)
 
 ## Planning:
 - 12/02 (1)
