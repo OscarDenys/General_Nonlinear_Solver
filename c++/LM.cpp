@@ -92,7 +92,7 @@ void finite_difference_jacob(arrayxxd f0, spmat J, arrayxxd (*Ffun)(arrayxxd), a
     double h = 1e-6; // stepsize for first order approximation
     std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
 
-    for (int j = 0; j < Nx; j++){
+    for (int j = 0; j < Nx-1; j++){
         arrayxxd x = x0;
         x(j) += h;
         arrayxxd f = (*Ffun)(x);
