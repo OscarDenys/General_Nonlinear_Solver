@@ -29,7 +29,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(vectxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  vectxd x0, double Jpk, vectxd pk, double gamma, double beta){
+double line_search(arrayxxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  arrayxxd x0, double Jpk, arrayxxd pk, double gamma, double beta){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -39,7 +39,7 @@ double line_search(vectxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  vectxd 
 
     // initialize t, evaluate function
     double t = 1;
-    arrayxxd x0 = x0.array();
+    //arrayxxd x0 = x0.array();
     double f0 = (*fun)(x0);
 
     trial_x = x0 + t*pk;
@@ -68,7 +68,7 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(vectxd f0, spmat J, arrayxxd (*Ffun)(vectxd), vectxd x0){
+void finite_difference_jacob(arrayxxd f0, spmat J, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
 
     // make sure x0 is a column vector 
     if (x0.cols() == 1){
@@ -83,7 +83,7 @@ void finite_difference_jacob(vectxd f0, spmat J, arrayxxd (*Ffun)(vectxd), vectx
         std::cout<< "finite_difference_jacob: fun needs to return a column vector"<< std::endl;
         f0.transpose();
     }
-    int Nf = f0.rows();
+    //int Nf = f0.rows();
 
     // initialize empty J (this would be bad practice memory-wise..)
     //J = spmat(Nf,Nx);
@@ -93,10 +93,10 @@ void finite_difference_jacob(vectxd f0, spmat J, arrayxxd (*Ffun)(vectxd), vectx
     std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
 
     for (int j = 0; j < Nx; j++){
-        vectxd x = x0;
+        arrayxxd x = x0;
         x(j) += h;
         arrayxxd f = (*Ffun)(x);
-        vectxd Jcolj = (f-f0)*(1/h);
+        arrayxxd Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
             if (Jcolj(i) != 0){
@@ -133,7 +133,9 @@ OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
 double f(arrayxxd F){
-    double f = 0.5*(F.dot(F));
+    matxd A = F.matrix();
+    vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
+    double f = 0.5*(B.dot(B));
     return f;
 }
 
@@ -152,7 +154,8 @@ OUTPUT
 - x_iter: each of the intermediate values xk
 - grad_iter: norm of gradient in each iteration
 */
-void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0){
+//void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
+void minimize_lm(arrayxxd x, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
 
     // convergence tolerance
     double grad_tol = 1e-4;
@@ -166,7 +169,7 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vect
     int Nx = x0.rows();
 
     // make sure fun returns a column vector
-    vectxd F = (*Ffun)(x0);
+    arrayxxd F = (*Ffun)(x0);
     if (F.cols() == 1){
         std::cout<< "minimize_lm: fun needs to return a column vector"<< std::endl;
         F.transpose();
@@ -174,8 +177,8 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vect
     int Nf = F.rows();
     
     // a log of the iterations
-    x_iter(Nx, max_iters);
-    grad_iter(max_iters);
+    matxd x_iter(Nx, max_iters);
+    vectxd grad_iter(max_iters);
 
     // line search parameters
     double gamma = 0.01; 
@@ -193,7 +196,7 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vect
         finite_difference_jacob(F, J, Ffun, x);
 
         //convergence criteria
-        vectxd grad = J.transpose()*F; // gradient of the scalar objective function f(x)
+        vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x)
         double inf_norm_grad = grad.cwiseAbs().maxCoeff();
 
         // store x_k and inf_norm_grad in iteration log
@@ -229,6 +232,8 @@ void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vect
         // https://scicomp.stackexchange.com/questions/21343/solving-linear-equations-using-eigen
         
         // line search
+        //matxd A = F.matrix();
+        //vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
         double Jpk = grad.dot(pk); 
         arrayxxd F = (*Ffun)(x);
         line_search(x, f, F, x, Jpk, pk, gamma, beta);

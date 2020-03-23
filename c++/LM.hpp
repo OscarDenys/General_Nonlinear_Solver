@@ -29,7 +29,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(vectxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  vectxd x0, double Jpk, vectxd pk, double gamma, double beta);
+double line_search(vectxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  arrayxxd x0, double Jpk, arrayxxd pk, double gamma, double beta);
 
 /*
 Finite difference approximation of the Jacobian.
@@ -42,7 +42,7 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(vectxd f0, spmat J, arrayxxd (*Ffun)(vectxd), vectxd x0);
+void finite_difference_jacob(arrayxxd f0, spmat J, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0);
 
 /*
 Scalar objective function.
@@ -65,7 +65,7 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
-double f(vectxd F);
+double f(arrayxxd F);
 
 
 
@@ -81,6 +81,7 @@ OUTPUT
 - x_iter: each of the intermediate values xk
 - grad_iter: norm of gradient in each iteration
 */
-void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
+void minimize_lm(arrayxxd x, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0);
+//void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
 
 } // end namespace std
