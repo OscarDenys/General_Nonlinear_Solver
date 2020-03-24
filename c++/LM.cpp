@@ -30,7 +30,7 @@ OUTPUT
 - t: scaling of the step pk (returned)
 */
 // TODO misschien argument x0 en x samen gebruiken
-double line_search(arrayxd & trial_x, double (*fun)(arrayxd), arrayxd F,  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta){
+double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd), arrayxd x), arrayxd (*Ffun)(arrayxd),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -40,10 +40,16 @@ double line_search(arrayxd & trial_x, double (*fun)(arrayxd), arrayxd F,  arrayx
 
     // initialize t, evaluate function
     double t = 1;
-    double f0 = (*fun)(F);
+    double f0 = (*fun)(Ffun, x0);          // OPASSEN HIER: f0 = (*fun)(F) -- F vervangen door x en Ffun
 
-    trial_x = x0 + t*pk;
-    while ( (*fun)(trial_x) > f0 + gamma*t*Jpk ){
+    trial_x = x0 + t*pk; // OK
+    //std::cout << "trial_x = " << trial_x << std::endl; // hier nog ok voor de 2 eerste iteraties (--> die gaan niet in de while) 
+
+    std::cout << "(*fun)(Ffun, trial_x) = " << (*fun)(Ffun, trial_x) << std::endl;  // HIER ZIT DE FOUT
+
+    //std::cout << "f0 + gamma*t*Jpk = " << f0 + gamma*t*Jpk << std::endl; // OK
+
+    while ( (*fun)(Ffun, trial_x) > f0 + gamma*t*Jpk ){
         // trial step in x
         t = beta*t;
         trial_x = x0 + t*pk;
@@ -51,7 +57,7 @@ double line_search(arrayxd & trial_x, double (*fun)(arrayxd), arrayxd F,  arrayx
         //std::cout << "(*fun)(trial_x) = " << (*fun)(trial_x) << std::endl; 
         //std::cout << "f0 + gamma*t*Jpk = " << f0 + gamma*t*Jpk << std::endl;
 
-        //std::cout << "trial_x = " << trial_x << std::endl; // NIET OK -- iets met Jpk?
+        //std::cout << "trial_x = " << trial_x << std::endl; // NIET OK
 
 
         // throw error if line search takes too many iterations
@@ -129,29 +135,29 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F(x))
 */
-/*
-double f(vectxd (*Ffun)(vectxd), vectxd x){
-    vectxd F = (*Ffun)(x);
-    double f = 0.5*(F.dot(F));
+double f(arrayxd (*Ffun)(arrayxd), arrayxd x){
+    arrayxd F = (*Ffun)(x);
+    double f = 0.5*(F.cwiseProduct(F).sum()); // dit is OK
     return f;
 }
-*/
+
 
 /*
 Scalar objective function.
 
 INPUT
-- F = F(x) uitgewerkt voor een zekere x
+- F = F(x) uitgewerkt voor een zekere x !!! dus niet de x zelf maar F(x) !!! 
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
+/*
 double f(arrayxd F){
     double f = 0.5*(F.cwiseProduct(F).sum());
     //std::cout << "f = " << f << std::endl;  // OK
     //std::cout << "F = " << F << std::endl;
     return f;
 }
-
+*/
 
 
 
@@ -250,7 +256,7 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         }
         vectxd pk = solverA.solve(-grad); // solver is OK
 
-        std::cout << "pk = " << pk << std::endl; // 2de pk is fout
+        //std::cout << "pk = " << pk << std::endl; // OK
 
         //TODO: A+ Identity_matrix * weight parameter alpha_k! // matrix inversion!!! (this is the Gauss-Newton method without alpha_k)
         // b = -grad; A = J'J 
@@ -261,7 +267,7 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         
         // line search
         double Jpk = grad.dot(pk); 
-        line_search(x, f, F, x, Jpk, pk, gamma, beta);
+        line_search(x, f, Ffun, x, Jpk, pk, gamma, beta);
         //std::cout << "x = " << x << std::endl; // NOT CHANGING
     }
     

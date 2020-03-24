@@ -29,7 +29,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(vectxd & trial_x, double (*fun)(arrayxd), arrayxd F,  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta);
+double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd), arrayxd x), arrayxd (*Ffun)(arrayxd),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta);
 
 /*
 Finite difference approximation of the Jacobian.
@@ -65,7 +65,7 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
-double f(arrayxd F);
+double f(arrayxd (*Ffun)(arrayxd), arrayxd x);
 
 
 
