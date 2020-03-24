@@ -40,13 +40,19 @@ double line_search(arrayxd & trial_x, double (*fun)(arrayxd), arrayxd F,  arrayx
 
     // initialize t, evaluate function
     double t = 1;
-    double f0 = (*fun)(x0);
+    double f0 = (*fun)(F);
 
     trial_x = x0 + t*pk;
     while ( (*fun)(trial_x) > f0 + gamma*t*Jpk ){
         // trial step in x
         t = beta*t;
         trial_x = x0 + t*pk;
+
+        std::cout << "(*fun)(trial_x) = " << (*fun)(trial_x) << std::endl; 
+        std::cout << "f0 + gamma*t*Jpk = " << f0 + gamma*t*Jpk << std::endl;
+
+        //std::cout << "trial_x = " << trial_x << std::endl; // NIET OK -- iets met Jpk?
+
 
         // throw error if line search takes too many iterations
         max_nb_steps_counter -= 1;
@@ -139,9 +145,9 @@ OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
 double f(arrayxd F){
-    //matxd A = F.matrix();               // TODO this is very inefficient memory wise..
-    //vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
     double f = 0.5*(F.cwiseProduct(F).sum());
+    //std::cout << "f = " << f << std::endl;  // OK
+    //std::cout << "F = " << F << std::endl;
     return f;
 }
 
@@ -242,20 +248,20 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
             std::cout << "minimize_lm: error in Eigen Sparse LU factorization" <<"\n";
         }
         vectxd pk = solverA.solve(-grad);
+
+        //std::cout << "pk = " << pk << std::endl; // SEEMS OK (NOT ZERO)
+
         //TODO: A+ Identity_matrix * weight parameter alpha_k! // matrix inversion!!! (this is the Gauss-Newton method without alpha_k)
         // b = -grad; A = J'J 
-        // A should be in compressed and column major order form! (A*pk=b)
-        // sources for code sparse solver:
+        // NOTE: A should be in compressed and column major order form! (A*pk=b)
+        // SOURCES for code sparse solver:
         // https://eigen.tuxfamily.org/dox/classEigen_1_1SparseLU.html
         // https://scicomp.stackexchange.com/questions/21343/solving-linear-equations-using-eigen
         
         // line search
-        //matxd A = F.matrix();
-        //vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
         double Jpk = grad.dot(pk); 
-        //arrayxd F = (*Ffun)(x); gebeurt al in fin_diff_jacob()
         line_search(x, f, F, x, Jpk, pk, gamma, beta);
-        std::cout << "x = " << x << std::endl;
+        //std::cout << "x = " << x << std::endl; // NOT CHANGING
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
