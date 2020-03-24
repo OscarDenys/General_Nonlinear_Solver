@@ -48,8 +48,8 @@ double line_search(arrayxd & trial_x, double (*fun)(arrayxd), arrayxd F,  arrayx
         t = beta*t;
         trial_x = x0 + t*pk;
 
-        std::cout << "(*fun)(trial_x) = " << (*fun)(trial_x) << std::endl; 
-        std::cout << "f0 + gamma*t*Jpk = " << f0 + gamma*t*Jpk << std::endl;
+        //std::cout << "(*fun)(trial_x) = " << (*fun)(trial_x) << std::endl; 
+        //std::cout << "f0 + gamma*t*Jpk = " << f0 + gamma*t*Jpk << std::endl;
 
         //std::cout << "trial_x = " << trial_x << std::endl; // NIET OK -- iets met Jpk?
 
@@ -83,6 +83,7 @@ void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), 
     }
 */
     int Nx = x0.size();
+    f0 = (*Ffun)(x0);
 /*
     // make sure fun returns a column vector
     f0 = (*Ffun)(x0);
@@ -205,6 +206,7 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
     spmat J(Nf,Nx);
 
     for (int k=1; k <= max_iters; k++){
+
         // check for divergence
         assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // or x.cwiseAbs().maxCoeff() < 1e6
 
@@ -214,8 +216,7 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         //convergence criteria
 
         //std::cout << "F = " << F << std::endl; // OK
-        //std::cout << "J = " << J << std::endl; 
-        //std::cout << "J matrix = " << matxd(J) << std::endl; // steeds de eerste J.. ---> steeds dezelfde x?
+        //std::cout << "J matrix = " << matxd(J) << std::endl; // steeds de eerste J.. ---> steeds dezelfde x --> while conditie in line search
 
         vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x)
 
@@ -247,9 +248,9 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         if(solverA.info()!=Eigen::Success) {
             std::cout << "minimize_lm: error in Eigen Sparse LU factorization" <<"\n";
         }
-        vectxd pk = solverA.solve(-grad);
+        vectxd pk = solverA.solve(-grad); // solver is OK
 
-        //std::cout << "pk = " << pk << std::endl; // SEEMS OK (NOT ZERO)
+        std::cout << "pk = " << pk << std::endl; // 2de pk is fout
 
         //TODO: A+ Identity_matrix * weight parameter alpha_k! // matrix inversion!!! (this is the Gauss-Newton method without alpha_k)
         // b = -grad; A = J'J 
