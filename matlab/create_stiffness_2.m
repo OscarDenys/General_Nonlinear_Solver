@@ -6,8 +6,10 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
     nb_elements_total = length(mesh.Elements(1,:));
 
     %boundary_nodes = [1 58:-1:25 2]; % Hardcode Hmin = 0.001;
-    boundary_nodes = [1 80:-1:34 2]; %'Hmax',0.005,'Hmin',0.0005
+    %boundary_nodes = [1 80:-1:34 2]; %'Hmax',0.005,'Hmin',0.0005
     %boundary_nodes = [1 8:-1:5 2]; % Hardcode Hmin = 0.25
+    boundary_nodes = [1 60:-1:26 2];
+    
     
     % all constants with prefix lin_ are used for the linearised second
     % integral

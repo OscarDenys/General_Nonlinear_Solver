@@ -86,9 +86,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
         A2 = det_jac/24*120*lin_k*C_uamb *(P1(1) + 2*P2(1) + P3(1));
         A3 = det_jac/24*120*lin_k*C_uamb *(P1(1) + P2(1) + 2*P3(1));
        
-        % Change in tryp (is just a try-out) seems to fix the problem of
-        % negative solutions...
-        tryp = 1;
+        tryp = ;
         f_lin(n1) = f_lin(n1) + tryp*A1;
         f_lin(n2) = f_lin(n2) + tryp*A2;
         f_lin(n3) = f_lin(n3) + tryp*A3;

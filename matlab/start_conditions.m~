@@ -15,10 +15,8 @@ sigma_vr = 2.32e-9;
 sigma_vz = 6.97e-9;
 
 % universal gas constant
-global R_g
 R_g = 8.314;
 % Maximum oxygen consumption rate:
-global T
 T = T_cel + 273.15;           % actual temperature in Kelvin
 T_ref = 293.15;               % reference temperature
 V_mu = 2.39e-4 * exp( 80200/R_g * (1/T_ref - 1/T) );
@@ -35,7 +33,6 @@ rho_u = 7.0e-7;
 rho_v = 7.5e-7;
 
 % Ambient conditions:
-global p_atm
 p_atm = 101300;
 C_uamb = p_atm * nu_u / (R_g * T);
 C_vamb = p_atm * nu_v / (R_g * T);
@@ -214,8 +211,8 @@ function stop = outfun(C_, optimValues, stats)
     
     global model nodes
     figure(2); clf;
-        global R_g T p_atm
-        Cplot = C_ * (R_g * T / p_atm);
+    
+        Cplot = C_ * R_g * T / p_atm;
         
     
         subplot(121); hold on;
