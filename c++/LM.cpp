@@ -40,25 +40,14 @@ double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd), ar
 
     // initialize t, evaluate function
     double t = 1;
-    double f0 = (*fun)(Ffun, x0);          // OPASSEN HIER: f0 = (*fun)(F) -- F vervangen door x en Ffun
+    double f0 = (*fun)(Ffun, x0);         
 
-    trial_x = x0 + t*pk; // OK
-    //std::cout << "trial_x = " << trial_x << std::endl; // hier nog ok voor de 2 eerste iteraties (--> die gaan niet in de while) 
-
-    std::cout << "(*fun)(Ffun, trial_x) = " << (*fun)(Ffun, trial_x) << std::endl;  // HIER ZIT DE FOUT
-
-    //std::cout << "f0 + gamma*t*Jpk = " << f0 + gamma*t*Jpk << std::endl; // OK
+    trial_x = x0 + t*pk; 
 
     while ( (*fun)(Ffun, trial_x) > f0 + gamma*t*Jpk ){
         // trial step in x
         t = beta*t;
         trial_x = x0 + t*pk;
-
-        //std::cout << "(*fun)(trial_x) = " << (*fun)(trial_x) << std::endl; 
-        //std::cout << "f0 + gamma*t*Jpk = " << f0 + gamma*t*Jpk << std::endl;
-
-        //std::cout << "trial_x = " << trial_x << std::endl; // NIET OK
-
 
         // throw error if line search takes too many iterations
         max_nb_steps_counter -= 1;
@@ -81,27 +70,10 @@ OUTPUT
 - J = J(x0)
 */
 void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), arrayxd x0){
-/*
-    // make sure x0 is a column vector 
-    if (x0.cols() == 1){
-        std::cout<< "finite_difference_jacob: x0 needs to be column vector"<< std::endl;
-        x0.transpose(); 
-    }
-*/
+
     int Nx = x0.size();
     f0 = (*Ffun)(x0);
-/*
-    // make sure fun returns a column vector
-    f0 = (*Ffun)(x0);
-    if (f0.cols() == 1){
-        std::cout<< "finite_difference_jacob: fun needs to return a column vector"<< std::endl;
-        f0.transpose();
-    }
-    //int Nf = f0.rows();
 
-    // initialize empty J (this would be bad practice memory-wise..)
-    //J = spmat(Nf,Nx);
-*/
     // perform finite difference jacobian evaluation
     double h = 1e-6; // stepsize for first order approximation
     std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
@@ -110,9 +82,6 @@ void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), 
         arrayxd x = x0;
         x(j) += h;
         arrayxd f = (*Ffun)(x);
-
-        //std::cout << "f = " << f << endl; OK
-
         arrayxd Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
@@ -122,9 +91,8 @@ void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), 
         }
     }
     J.setFromTriplets(tripletList.begin(), tripletList.end());
-
-    //std::cout << "J = " << matxd(J) << std::endl; OK
 }
+
 
 /*
 Scalar objective function.
@@ -143,25 +111,6 @@ double f(arrayxd (*Ffun)(arrayxd), arrayxd x){
 
 
 /*
-Scalar objective function.
-
-INPUT
-- F = F(x) uitgewerkt voor een zekere x !!! dus niet de x zelf maar F(x) !!! 
-OUTPUT
-- f: (double) f(x) = 0.5*L2-norm(F)
-*/
-/*
-double f(arrayxd F){
-    double f = 0.5*(F.cwiseProduct(F).sum());
-    //std::cout << "f = " << f << std::endl;  // OK
-    //std::cout << "F = " << F << std::endl;
-    return f;
-}
-*/
-
-
-
-/*
 Levenberg-Marquardt algorithm.
 
 INPUT
@@ -173,28 +122,13 @@ OUTPUT
 - x_iter: each of the intermediate values xk
 - grad_iter: norm of gradient in each iteration
 */
-//void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
+// TODO (eventueel) :void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
 void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
 
     // convergence tolerance
     double grad_tol = 1e-4;
     int max_iters = 200;
-/*
-    // make sure x0 is a column vector 
-    if (x0.cols() == 1){
-        std::cout<< "minimize_lm: x0 needs to be column vector"<< std::endl;
-        x0.transpose(); 
-    }
-    int Nx = x0.rows();
-
-    // make sure fun returns a column vector
-    arrayxd F = (*Ffun)(x0);
-    if (F.cols() == 1){
-        std::cout<< "minimize_lm: fun needs to return a column vector"<< std::endl;
-        F.transpose();
-    }
-    int Nf = F.rows();
-*/    
+  
     arrayxd F = (*Ffun)(x0);
     int Nx = x0.size();
     int Nf = F.size();
@@ -220,14 +154,7 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         finite_difference_jacob(F, J, Ffun, x);
 
         //convergence criteria
-
-        //std::cout << "F = " << F << std::endl; // OK
-        //std::cout << "J matrix = " << matxd(J) << std::endl; // steeds de eerste J.. ---> steeds dezelfde x --> while conditie in line search
-
         vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x)
-
-        //std::cout << "grad = " << grad << std::endl; // NIET OK
-
         double inf_norm_grad = grad.cwiseAbs().maxCoeff();
 
         // store x_k and inf_norm_grad in iteration log
@@ -247,16 +174,14 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         // find the search direction
         spmat A = J.transpose() * J;
         A.makeCompressed();
-        //Sparse LU solver (square system pk = -(J'*J)\(J'*F) )
+        //Sparse LU solver: (square system pk = -(J'*J)\(J'*F) )
         Eigen::SparseLU<Eigen::SparseMatrix<double> > solverA;
         solverA.analyzePattern(A);
         solverA.factorize(A);
         if(solverA.info()!=Eigen::Success) {
             std::cout << "minimize_lm: error in Eigen Sparse LU factorization" <<"\n";
         }
-        vectxd pk = solverA.solve(-grad); // solver is OK
-
-        //std::cout << "pk = " << pk << std::endl; // OK
+        vectxd pk = solverA.solve(-grad); 
 
         //TODO: A+ Identity_matrix * weight parameter alpha_k! // matrix inversion!!! (this is the Gauss-Newton method without alpha_k)
         // b = -grad; A = J'J 
@@ -268,7 +193,6 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         // line search
         double Jpk = grad.dot(pk); 
         line_search(x, f, Ffun, x, Jpk, pk, gamma, beta);
-        //std::cout << "x = " << x << std::endl; // NOT CHANGING
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
