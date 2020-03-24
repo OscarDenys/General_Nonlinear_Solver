@@ -1,7 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include <vector>
-#include "Eigen/SparseCore"
+//#include "Eigen/SparseCore"
 #include "Eigen/SparseLU"
 #include <iostream>
 
@@ -9,7 +9,7 @@ typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse mat
 typedef Eigen::Triplet<double> Trip;
 typedef Eigen::VectorXd vectxd;
 typedef Eigen::MatrixXd matxd;
-typedef Eigen::ArrayXXd arrayxxd;
+typedef Eigen::ArrayXd arrayxd;
 
 namespace std {
 
@@ -29,7 +29,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(arrayxxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  arrayxxd x0, double Jpk, arrayxxd pk, double gamma, double beta){
+double line_search(arrayxd trial_x, double (*fun)(arrayxd), arrayxd F,  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -68,7 +68,7 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(arrayxxd f0, spmat J, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
+void finite_difference_jacob(arrayxd f0, spmat J, arrayxd (*Ffun)(arrayxd), arrayxd x0){
 
     // make sure x0 is a column vector 
     if (x0.cols() == 1){
@@ -92,11 +92,11 @@ void finite_difference_jacob(arrayxxd f0, spmat J, arrayxxd (*Ffun)(arrayxxd), a
     double h = 1e-6; // stepsize for first order approximation
     std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
 
-    for (int j = 0; j < Nx-1; j++){
-        arrayxxd x = x0;
+    for (int j = 0; j < Nx; j++){
+        arrayxd x = x0;
         x(j) += h;
-        arrayxxd f = (*Ffun)(x);
-        arrayxxd Jcolj = (f-f0)*(1/h);
+        arrayxd f = (*Ffun)(x);
+        arrayxd Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
             if (Jcolj(i) != 0){
@@ -132,8 +132,8 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
-double f(arrayxxd F){
-    matxd A = F.matrix();
+double f(arrayxd F){
+    matxd A = F.matrix();               // this is very inefficient memory wise..
     vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
     double f = 0.5*(B.dot(B));
     return f;
@@ -155,7 +155,7 @@ OUTPUT
 - grad_iter: norm of gradient in each iteration
 */
 //void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
-void minimize_lm(arrayxxd x, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
+void minimize_lm(arrayxd x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
 
     // convergence tolerance
     double grad_tol = 1e-4;
@@ -169,7 +169,7 @@ void minimize_lm(arrayxxd x, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
     int Nx = x0.rows();
 
     // make sure fun returns a column vector
-    arrayxxd F = (*Ffun)(x0);
+    arrayxd F = (*Ffun)(x0);
     if (F.cols() == 1){
         std::cout<< "minimize_lm: fun needs to return a column vector"<< std::endl;
         F.transpose();
@@ -235,7 +235,7 @@ void minimize_lm(arrayxxd x, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
         //matxd A = F.matrix();
         //vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
         double Jpk = grad.dot(pk); 
-        arrayxxd F = (*Ffun)(x);
+        arrayxd F = (*Ffun)(x);
         line_search(x, f, F, x, Jpk, pk, gamma, beta);
     }
     
