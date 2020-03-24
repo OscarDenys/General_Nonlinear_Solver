@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cmath>
 #include <vector>
-//#include "Eigen/SparseCore"
+#include "Eigen/SparseCore"
 #include "Eigen/SparseLU"
 
 
@@ -46,7 +46,7 @@ arrayxd Ffunction(arrayxd x){
 int main(){
     arrayxd x0(2);
     x0 << 1.0, 1.0 ;
-    arrayxd x;
+    arrayxd x(2);
     x << 1.0, 1.0 ;
    // matxd x_iter;
    // vectxd grad_iter;

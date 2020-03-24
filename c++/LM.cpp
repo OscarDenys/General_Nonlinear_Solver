@@ -1,7 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include <vector>
-//#include "Eigen/SparseCore"
+#include "Eigen/SparseCore"
 #include "Eigen/SparseLU"
 #include <iostream>
 
@@ -29,7 +29,8 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(arrayxd trial_x, double (*fun)(arrayxd), arrayxd F,  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta){
+// TODO misschien argument x0 en x samen gebruiken
+double line_search(arrayxd & trial_x, double (*fun)(arrayxd), arrayxd F,  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -39,7 +40,6 @@ double line_search(arrayxd trial_x, double (*fun)(arrayxd), arrayxd F,  arrayxd 
 
     // initialize t, evaluate function
     double t = 1;
-    //arrayxxd x0 = x0.array();
     double f0 = (*fun)(x0);
 
     trial_x = x0 + t*pk;
@@ -68,15 +68,16 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(arrayxd f0, spmat J, arrayxd (*Ffun)(arrayxd), arrayxd x0){
-
+void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), arrayxd x0){
+/*
     // make sure x0 is a column vector 
     if (x0.cols() == 1){
         std::cout<< "finite_difference_jacob: x0 needs to be column vector"<< std::endl;
         x0.transpose(); 
     }
-    int Nx = x0.rows();
-
+*/
+    int Nx = x0.size();
+/*
     // make sure fun returns a column vector
     f0 = (*Ffun)(x0);
     if (f0.cols() == 1){
@@ -87,7 +88,7 @@ void finite_difference_jacob(arrayxd f0, spmat J, arrayxd (*Ffun)(arrayxd), arra
 
     // initialize empty J (this would be bad practice memory-wise..)
     //J = spmat(Nf,Nx);
-
+*/
     // perform finite difference jacobian evaluation
     double h = 1e-6; // stepsize for first order approximation
     std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
@@ -96,6 +97,9 @@ void finite_difference_jacob(arrayxd f0, spmat J, arrayxd (*Ffun)(arrayxd), arra
         arrayxd x = x0;
         x(j) += h;
         arrayxd f = (*Ffun)(x);
+
+        //std::cout << "f = " << f << endl; OK
+
         arrayxd Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
@@ -105,6 +109,8 @@ void finite_difference_jacob(arrayxd f0, spmat J, arrayxd (*Ffun)(arrayxd), arra
         }
     }
     J.setFromTriplets(tripletList.begin(), tripletList.end());
+
+    //std::cout << "J = " << matxd(J) << std::endl; OK
 }
 
 /*
@@ -133,9 +139,9 @@ OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
 double f(arrayxd F){
-    matxd A = F.matrix();               // this is very inefficient memory wise..
-    vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
-    double f = 0.5*(B.dot(B));
+    //matxd A = F.matrix();               // TODO this is very inefficient memory wise..
+    //vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
+    double f = 0.5*(F.cwiseProduct(F).sum());
     return f;
 }
 
@@ -155,12 +161,12 @@ OUTPUT
 - grad_iter: norm of gradient in each iteration
 */
 //void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
-void minimize_lm(arrayxd x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
+void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
 
     // convergence tolerance
     double grad_tol = 1e-4;
     int max_iters = 200;
-
+/*
     // make sure x0 is a column vector 
     if (x0.cols() == 1){
         std::cout<< "minimize_lm: x0 needs to be column vector"<< std::endl;
@@ -175,7 +181,11 @@ void minimize_lm(arrayxd x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         F.transpose();
     }
     int Nf = F.rows();
-    
+*/    
+    arrayxd F = (*Ffun)(x0);
+    int Nx = x0.size();
+    int Nf = F.size();
+
     // a log of the iterations
     matxd x_iter(Nx, max_iters);
     vectxd grad_iter(max_iters);
@@ -196,7 +206,15 @@ void minimize_lm(arrayxd x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         finite_difference_jacob(F, J, Ffun, x);
 
         //convergence criteria
+
+        //std::cout << "F = " << F << std::endl; // OK
+        //std::cout << "J = " << J << std::endl; 
+        //std::cout << "J matrix = " << matxd(J) << std::endl; // steeds de eerste J.. ---> steeds dezelfde x?
+
         vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x)
+
+        //std::cout << "grad = " << grad << std::endl; // NIET OK
+
         double inf_norm_grad = grad.cwiseAbs().maxCoeff();
 
         // store x_k and inf_norm_grad in iteration log
@@ -235,8 +253,9 @@ void minimize_lm(arrayxd x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         //matxd A = F.matrix();
         //vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
         double Jpk = grad.dot(pk); 
-        arrayxd F = (*Ffun)(x);
+        //arrayxd F = (*Ffun)(x); gebeurt al in fin_diff_jacob()
         line_search(x, f, F, x, Jpk, pk, gamma, beta);
+        std::cout << "x = " << x << std::endl;
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
