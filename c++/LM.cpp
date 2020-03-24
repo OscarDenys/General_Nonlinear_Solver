@@ -180,10 +180,12 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         for (int i; i < A.rows(); i++){
             A.coeffRef(i,i) = (A.coeffRef(i,i) + 0.01) * lambda;
         }
-        // spmat A = JtJ + lambda * JtJ.diagonal();  // diag(JtJ) in stead of identity matrix makes penalisation scaling invariant
         
         A.makeCompressed();
-        //Sparse LU solver: (square system pk = -(J'*J)\(J'*F) )
+        //Sparse LU solver: 
+            // A*pk = b 
+            //  A = J'J + lambda * (diag(J'J) + 0.01);
+            //  b = -grad;
         Eigen::SparseLU<Eigen::SparseMatrix<double> > solverA;
         solverA.analyzePattern(A);
         solverA.factorize(A);
@@ -191,13 +193,6 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
             std::cout << "minimize_lm: error in Eigen Sparse LU factorization" <<"\n";
         }
         vectxd pk = solverA.solve(-grad); 
-
-        //TODO: A+ Identity_matrix * weight parameter alpha_k! // matrix inversion!!! (this is the Gauss-Newton method without alpha_k)
-        // b = -grad; A = J'J 
-        // NOTE: A should be in compressed and column major order form! (A*pk=b)
-        // SOURCES for code sparse solver:
-        // https://eigen.tuxfamily.org/dox/classEigen_1_1SparseLU.html
-        // https://scicomp.stackexchange.com/questions/21343/solving-linear-equations-using-eigen
         
         // line search
         double Jpk = grad.dot(pk); 
