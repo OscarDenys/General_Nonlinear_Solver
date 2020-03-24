@@ -141,6 +141,9 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
     double gamma = 0.01; 
     double beta = 0.6;
 
+    // Levenberg-Marquardt: norm penalisation parameter lambda
+    double lambda = 0.01;
+
     // loop initialization
     x = x0;
     spmat J(Nf,Nx);
@@ -171,8 +174,14 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
             return;
         }
 
-        // find the search direction
-        spmat A = J.transpose() * J;
+        // find the search direction pk 
+
+        spmat A = J.transpose() * J; 
+        for (int i; i < A.rows(); i++){
+            A.coeffRef(i,i) = (A.coeffRef(i,i) + 0.01) * lambda;
+        }
+        // spmat A = JtJ + lambda * JtJ.diagonal();  // diag(JtJ) in stead of identity matrix makes penalisation scaling invariant
+        
         A.makeCompressed();
         //Sparse LU solver: (square system pk = -(J'*J)\(J'*F) )
         Eigen::SparseLU<Eigen::SparseMatrix<double> > solverA;
