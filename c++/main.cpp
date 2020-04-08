@@ -6,6 +6,7 @@
 #include "integrals.hpp"
 #include "Eigen/SparseCore"
 #include "Eigen/SparseCholesky"
+#include "LM.hpp"
 
 
 using namespace std;
@@ -128,7 +129,14 @@ int main() {
     myFile<<"]';";
     std::cout<<std::endl;
     // Functie die second integral evalueert voor gegeven C --> H(c)
-    Eigen::VectorXd H(2*M);
+
+    Eigen::ArrayXd C0_array = C0.array();
+    Eigen::ArrayXd C_array(2*M);
+
+    std::minimize_lm(myMesh, C_array, std::integral2nonlinear, C0_array);
+
+
+
     // integral2nonlinear(myMesh, C_current, H); // Sibren_functions OK!
 
 

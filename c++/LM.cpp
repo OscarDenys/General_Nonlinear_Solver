@@ -4,12 +4,15 @@
 #include "Eigen/SparseCore"
 #include "Eigen/SparseLU"
 #include <iostream>
+#include "mesh.hpp"
+
 
 typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> Trip;
 typedef Eigen::VectorXd vectxd;
 typedef Eigen::MatrixXd matxd;
 typedef Eigen::ArrayXd arrayxd;
+
 
 namespace std {
 
@@ -30,7 +33,7 @@ OUTPUT
 - t: scaling of the step pk (returned)
 */
 // TODO misschien argument x0 en x samen gebruiken
-double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd), arrayxd x), arrayxd (*Ffun)(arrayxd),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta){
+double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh&), arrayxd (*Ffun)(arrayxd, std::mesh&),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta, std::mesh &myMesh){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -40,11 +43,11 @@ double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd), ar
 
     // initialize t, evaluate function
     double t = 1;
-    double f0 = (*fun)(Ffun, x0);         
+    double f0 = (*fun)(Ffun, x0, myMesh);         
 
     trial_x = x0 + t*pk; 
 
-    while ( (*fun)(Ffun, trial_x) > f0 + gamma*t*Jpk ){
+    while ( (*fun)(Ffun, trial_x, myMesh) > f0 + gamma*t*Jpk ){
         // trial step in x
         t = beta*t;
         trial_x = x0 + t*pk;
@@ -69,10 +72,10 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), arrayxd x0){
+void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0, std::mesh &myMesh){
 
     int Nx = x0.size();
-    f0 = (*Ffun)(x0);
+    f0 = (*Ffun)(x0, myMesh);
 
     // perform finite difference jacobian evaluation
     double h = 1e-6; // stepsize for first order approximation
@@ -81,7 +84,7 @@ void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), 
     for (int j = 0; j < Nx; j++){
         arrayxd x = x0;
         x(j) += h;
-        arrayxd f = (*Ffun)(x);
+        arrayxd f = (*Ffun)(x, myMesh);
         arrayxd Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
@@ -103,8 +106,8 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F(x))
 */
-double f(arrayxd (*Ffun)(arrayxd), arrayxd x){
-    arrayxd F = (*Ffun)(x);
+double f(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh &myMesh){
+    arrayxd F = (*Ffun)(x, myMesh);
     double f = 0.5*(F.cwiseProduct(F).sum()); // dit is OK
     return f;
 }
@@ -123,13 +126,13 @@ OUTPUT
 - grad_iter: norm of gradient in each iteration
 */
 // TODO (eventueel) :void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
-void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
+void minimize_lm(std::mesh &myMesh, arrayxd & x, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0){
 
     // convergence tolerance
     double grad_tol = 1e-4;
     int max_iters = 200;
   
-    arrayxd F = (*Ffun)(x0);
+    arrayxd F = (*Ffun)(x0, myMesh);
     int Nx = x0.size();
     int Nf = F.size();
 
@@ -154,7 +157,7 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // or x.cwiseAbs().maxCoeff() < 1e6
 
         // evaluate F and it's jacobian J
-        finite_difference_jacob(F, J, Ffun, x);
+        finite_difference_jacob(F, J, Ffun, x, myMesh);
 
         //convergence criteria
         vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x)
@@ -196,7 +199,7 @@ void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
         
         // line search
         double Jpk = grad.dot(pk); 
-        line_search(x, f, Ffun, x, Jpk, pk, gamma, beta);
+        line_search(x, f, Ffun, x, Jpk, pk, gamma, beta, myMesh);
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
