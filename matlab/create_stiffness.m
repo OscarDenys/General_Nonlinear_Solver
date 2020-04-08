@@ -51,7 +51,8 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
         det_jac = abs(det(Jac));
 
         % =====================   integraal 1 - (5)
-        temp = (P1(1) + P2(1) + P3(1)) / 6 / det_jac;     
+        tryp2 = 1;
+        temp = tryp2 * (P1(1) + P2(1) + P3(1)) / 6 / det_jac;     
 
         % node 1 -> test phi_1
         elem_stiff(1,1) = temp * (sigma_uz*power(P3(1)-P2(1),2) + sigma_ur*power(P3(2)-P2(2),2) ) ;  
