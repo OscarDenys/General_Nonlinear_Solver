@@ -9,7 +9,7 @@ typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse mat
 typedef Eigen::Triplet<double> Trip;
 typedef Eigen::VectorXd vectxd;
 typedef Eigen::MatrixXd matxd;
-typedef Eigen::ArrayXXd arrayxxd;
+typedef Eigen::ArrayXd arrayxd;
 
 namespace std {
 
@@ -29,7 +29,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(vectxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  arrayxxd x0, double Jpk, arrayxxd pk, double gamma, double beta);
+double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd), arrayxd x), arrayxd (*Ffun)(arrayxd),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta);
 
 /*
 Finite difference approximation of the Jacobian.
@@ -42,7 +42,7 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(arrayxxd f0, spmat J, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0);
+void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), arrayxd x0);
 
 /*
 Scalar objective function.
@@ -65,7 +65,7 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
-double f(arrayxxd F);
+double f(arrayxd (*Ffun)(arrayxd), arrayxd x);
 
 
 
@@ -78,10 +78,10 @@ INPUT
 - alpha_k: weighting parameter to penalize norm(step) (TODO)
 OUTPUT
 - solution vector x
-- x_iter: each of the intermediate values xk
+- x_iter: each of the intermediate values xk 
 - grad_iter: norm of gradient in each iteration
 */
-void minimize_lm(arrayxxd x, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0);
+void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0);
 //void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
 
 } // end namespace std

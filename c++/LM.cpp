@@ -9,7 +9,7 @@ typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse mat
 typedef Eigen::Triplet<double> Trip;
 typedef Eigen::VectorXd vectxd;
 typedef Eigen::MatrixXd matxd;
-typedef Eigen::ArrayXXd arrayxxd;
+typedef Eigen::ArrayXd arrayxd;
 
 namespace std {
 
@@ -29,7 +29,8 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(arrayxxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  arrayxxd x0, double Jpk, arrayxxd pk, double gamma, double beta){
+// TODO misschien argument x0 en x samen gebruiken
+double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd), arrayxd x), arrayxd (*Ffun)(arrayxd),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -39,11 +40,11 @@ double line_search(arrayxxd trial_x, double (*fun)(arrayxxd), arrayxxd F,  array
 
     // initialize t, evaluate function
     double t = 1;
-    //arrayxxd x0 = x0.array();
-    double f0 = (*fun)(x0);
+    double f0 = (*fun)(Ffun, x0);         
 
-    trial_x = x0 + t*pk;
-    while ( (*fun)(trial_x) > f0 + gamma*t*Jpk ){
+    trial_x = x0 + t*pk; 
+
+    while ( (*fun)(Ffun, trial_x) > f0 + gamma*t*Jpk ){
         // trial step in x
         t = beta*t;
         trial_x = x0 + t*pk;
@@ -68,35 +69,20 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(arrayxxd f0, spmat J, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
+void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), arrayxd x0){
 
-    // make sure x0 is a column vector 
-    if (x0.cols() == 1){
-        std::cout<< "finite_difference_jacob: x0 needs to be column vector"<< std::endl;
-        x0.transpose(); 
-    }
-    int Nx = x0.rows();
-
-    // make sure fun returns a column vector
+    int Nx = x0.size();
     f0 = (*Ffun)(x0);
-    if (f0.cols() == 1){
-        std::cout<< "finite_difference_jacob: fun needs to return a column vector"<< std::endl;
-        f0.transpose();
-    }
-    //int Nf = f0.rows();
-
-    // initialize empty J (this would be bad practice memory-wise..)
-    //J = spmat(Nf,Nx);
 
     // perform finite difference jacobian evaluation
     double h = 1e-6; // stepsize for first order approximation
     std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
 
     for (int j = 0; j < Nx; j++){
-        arrayxxd x = x0;
+        arrayxd x = x0;
         x(j) += h;
-        arrayxxd f = (*Ffun)(x);
-        arrayxxd Jcolj = (f-f0)*(1/h);
+        arrayxd f = (*Ffun)(x);
+        arrayxd Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
             if (Jcolj(i) != 0){
@@ -107,6 +93,7 @@ void finite_difference_jacob(arrayxxd f0, spmat J, arrayxxd (*Ffun)(arrayxxd), a
     J.setFromTriplets(tripletList.begin(), tripletList.end());
 }
 
+
 /*
 Scalar objective function.
 
@@ -116,30 +103,11 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F(x))
 */
-/*
-double f(vectxd (*Ffun)(vectxd), vectxd x){
-    vectxd F = (*Ffun)(x);
-    double f = 0.5*(F.dot(F));
+double f(arrayxd (*Ffun)(arrayxd), arrayxd x){
+    arrayxd F = (*Ffun)(x);
+    double f = 0.5*(F.cwiseProduct(F).sum()); // dit is OK
     return f;
 }
-*/
-
-/*
-Scalar objective function.
-
-INPUT
-- F = F(x) uitgewerkt voor een zekere x
-OUTPUT
-- f: (double) f(x) = 0.5*L2-norm(F)
-*/
-double f(arrayxxd F){
-    matxd A = F.matrix();
-    vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
-    double f = 0.5*(B.dot(B));
-    return f;
-}
-
-
 
 
 /*
@@ -154,28 +122,17 @@ OUTPUT
 - x_iter: each of the intermediate values xk
 - grad_iter: norm of gradient in each iteration
 */
-//void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
-void minimize_lm(arrayxxd x, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
+// TODO (eventueel) :void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
+void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0){
 
     // convergence tolerance
     double grad_tol = 1e-4;
     int max_iters = 200;
+  
+    arrayxd F = (*Ffun)(x0);
+    int Nx = x0.size();
+    int Nf = F.size();
 
-    // make sure x0 is a column vector 
-    if (x0.cols() == 1){
-        std::cout<< "minimize_lm: x0 needs to be column vector"<< std::endl;
-        x0.transpose(); 
-    }
-    int Nx = x0.rows();
-
-    // make sure fun returns a column vector
-    arrayxxd F = (*Ffun)(x0);
-    if (F.cols() == 1){
-        std::cout<< "minimize_lm: fun needs to return a column vector"<< std::endl;
-        F.transpose();
-    }
-    int Nf = F.rows();
-    
     // a log of the iterations
     matxd x_iter(Nx, max_iters);
     vectxd grad_iter(max_iters);
@@ -184,11 +141,15 @@ void minimize_lm(arrayxxd x, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
     double gamma = 0.01; 
     double beta = 0.6;
 
+    // Levenberg-Marquardt: norm penalisation parameter lambda
+    double lambda = 0.01;
+
     // loop initialization
     x = x0;
     spmat J(Nf,Nx);
 
     for (int k=1; k <= max_iters; k++){
+
         // check for divergence
         assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // or x.cwiseAbs().maxCoeff() < 1e6
 
@@ -213,30 +174,29 @@ void minimize_lm(arrayxxd x, arrayxxd (*Ffun)(arrayxxd), arrayxxd x0){
             return;
         }
 
-        // find the search direction
-        spmat A = J.transpose() * J;
+        // find the search direction pk 
+
+        spmat A = J.transpose() * J; 
+        for (int i; i < A.rows(); i++){
+            A.coeffRef(i,i) = (A.coeffRef(i,i) + 0.01) * lambda;
+        }
+        
         A.makeCompressed();
-        //Sparse LU solver (square system pk = -(J'*J)\(J'*F) )
+        //Sparse LU solver: 
+            // A*pk = b 
+            //  A = J'J + lambda * (diag(J'J) + 0.01);
+            //  b = -grad;
         Eigen::SparseLU<Eigen::SparseMatrix<double> > solverA;
         solverA.analyzePattern(A);
         solverA.factorize(A);
         if(solverA.info()!=Eigen::Success) {
             std::cout << "minimize_lm: error in Eigen Sparse LU factorization" <<"\n";
         }
-        vectxd pk = solverA.solve(-grad);
-        //TODO: A+ Identity_matrix * weight parameter alpha_k! // matrix inversion!!! (this is the Gauss-Newton method without alpha_k)
-        // b = -grad; A = J'J 
-        // A should be in compressed and column major order form! (A*pk=b)
-        // sources for code sparse solver:
-        // https://eigen.tuxfamily.org/dox/classEigen_1_1SparseLU.html
-        // https://scicomp.stackexchange.com/questions/21343/solving-linear-equations-using-eigen
+        vectxd pk = solverA.solve(-grad); 
         
         // line search
-        //matxd A = F.matrix();
-        //vectxd B(Eigen::Map<vectxd>(A.data(), A.cols()*A.rows()));
         double Jpk = grad.dot(pk); 
-        arrayxxd F = (*Ffun)(x);
-        line_search(x, f, F, x, Jpk, pk, gamma, beta);
+        line_search(x, f, Ffun, x, Jpk, pk, gamma, beta);
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
