@@ -4,6 +4,7 @@
 #include "Eigen/SparseCore"
 #include "Eigen/SparseLU"
 #include <iostream>
+#include "mesh.hpp"
 
 typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> Trip;
@@ -29,7 +30,7 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd), arrayxd x), arrayxd (*Ffun)(arrayxd),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta);
+double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh&), arrayxd (*Ffun)(arrayxd, std::mesh&),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta, std::mesh &myMesh);
 
 /*
 Finite difference approximation of the Jacobian.
@@ -42,7 +43,7 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd), arrayxd x0);
+void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0, std::mesh &myMesh);
 
 /*
 Scalar objective function.
@@ -65,7 +66,7 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F)
 */
-double f(arrayxd (*Ffun)(arrayxd), arrayxd x);
+double f(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh &myMesh);
 
 
 
@@ -81,7 +82,9 @@ OUTPUT
 - x_iter: each of the intermediate values xk 
 - grad_iter: norm of gradient in each iteration
 */
-void minimize_lm(arrayxd & x, arrayxd (*Ffun)(arrayxd), arrayxd x0);
+void minimize_lm(std::mesh &myMesh, arrayxd & x, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0);
 //void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
 
-} // end namespace std
+ // end namespace std
+
+};

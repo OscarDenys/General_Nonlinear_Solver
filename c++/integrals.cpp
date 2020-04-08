@@ -150,12 +150,11 @@ namespace std {
             f_lin[n1+M] -= det_jac * Rv * (2*P1[0] + P2[0] + P3[0]) / 24;
             f_lin[n2+M] -= det_jac * Rv * (P1[0] + 2*P2[0] + P3[0]) / 24;
             f_lin[n3+M] -= det_jac * Rv * (P1[0] + P2[0] + 2*P3[0]) / 24;
-        }
-
+        };
     } // integral2lin()
 
-    void integral2nonlinear(mesh & myMesh, Eigen::VectorXd &H, Eigen::VectorXd &C) {
-
+    Eigen::ArrayXd integral2nonlinear(Eigen::ArrayXd C, mesh & myMesh) {
+        Eigen::ArrayXd H(C.size()); // todo: vanzelf zero? 
         double Ru12, Ru13, Ru23;
         double Rv12, Rv13, Rv23;
         int M = myMesh.getNbNodes();
@@ -188,6 +187,7 @@ namespace std {
             H[n2+M] -= det_jac * ((P1[0]+P2[0])*Rv12 + (P2[0] + P3[0])*Rv23) / 24;
             H[n3+M] -= det_jac * ((P1[0]+P3[0])*Rv13 + (P2[0] + P3[0])*Rv23) / 24;
         }
+        return H;
     } // integral2nonLinear()
 
 
@@ -319,7 +319,7 @@ namespace std {
     } // applySigmaAndAddCommonPart()
 
     // respiration kinetics: R - formula (3)
-    void evaluateRespiration(int nodeIndex, Eigen::VectorXd &prevSol, double &Ru, double &Rv) {
+    void evaluateRespiration(int nodeIndex, Eigen::ArrayXd &prevSol, double &Ru, double &Rv) {
         // evaluate the respiratory function (formula (3) of assignement) on the node with given index
         // return the values in the doubles Ru and Rv
         // the argument prevSol contains the solution vector of c_i of the previous iteration
@@ -330,7 +330,7 @@ namespace std {
         Rv = evaluateRv(prevSol[nodeIndex],prevSol[M+nodeIndex], Ru);
     }
 
-    void evaluateRespiration(int nodeIndex1, int nodeIndex2, Eigen::VectorXd &prevSol, double &Ru, double &Rv) {
+    void evaluateRespiration(int nodeIndex1, int nodeIndex2, Eigen::ArrayXd &prevSol, double &Ru, double &Rv) {
         // evaluate the respiratory function (formula (3) of assignement) halfway between two nodes
         // with given index
         // return the values in the doubles Ru and Rv
