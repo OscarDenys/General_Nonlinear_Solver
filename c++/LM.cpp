@@ -33,7 +33,8 @@ OUTPUT
 - t: scaling of the step pk (returned)
 */
 // TODO misschien argument x0 en x samen gebruiken
-double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh&), arrayxd (*Ffun)(arrayxd, std::mesh&),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta, std::mesh &myMesh){
+double line_search(arrayxd & trial_x, double (*fun)(void (*Ffun)(arrayxd, arrayxd, std::mesh&), arrayxd x, 
+        std::mesh&), void (*Ffun)(arrayxd, arrayxd, std::mesh&),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta, std::mesh &myMesh){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -72,20 +73,23 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0, std::mesh &myMesh){
+void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(arrayxd, arrayxd, std::mesh&), arrayxd x0, std::mesh &myMesh){
 
     int Nx = x0.size();
-    f0 = (*Ffun)(x0, myMesh);
+    (*Ffun)(x0, f0, myMesh);
 
     // perform finite difference jacobian evaluation
     double h = 1e-6; // stepsize for first order approximation
     std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
 
+    arrayxd x = x0;
+    arrayxd f(x0.size());
+    arrayxd Jcolj(x0.size());
+
     for (int j = 0; j < Nx; j++){
-        arrayxd x = x0;
         x(j) += h;
-        arrayxd f = (*Ffun)(x, myMesh);
-        arrayxd Jcolj = (f-f0)*(1/h);
+        (*Ffun)(x, f, myMesh);
+        Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
             if (Jcolj(i) != 0){
@@ -106,8 +110,9 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F(x))
 */
-double f(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh &myMesh){
-    arrayxd F = (*Ffun)(x, myMesh);
+double f(void (*Ffun)(arrayxd, arrayxd, std::mesh&), arrayxd x, std::mesh &myMesh){
+    arrayxd F(x.size());
+    (*Ffun)(x, F, myMesh);
     double f = 0.5*(F.cwiseProduct(F).sum()); // dit is OK
     return f;
 }
@@ -126,13 +131,14 @@ OUTPUT
 - grad_iter: norm of gradient in each iteration
 */
 // TODO (eventueel) :void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
-void minimize_lm(std::mesh &myMesh, arrayxd & x, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0){
+void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(arrayxd, arrayxd, std::mesh&), arrayxd x0){
 
     // convergence tolerance
     double grad_tol = 1e-4;
     int max_iters = 200;
   
-    arrayxd F = (*Ffun)(x0, myMesh);
+    arrayxd F(x0.size());
+    (*Ffun)(x0, F, myMesh);
     int Nx = x0.size();
     int Nf = F.size();
 

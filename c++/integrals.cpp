@@ -3,6 +3,7 @@
 #include <vector>
 #include "integrals.hpp"
 #include "Eigen/SparseCore"
+#include "Eigen/SparseCholesky"
 #include "mesh.hpp"
 #include "constants.hpp"
 
@@ -357,6 +358,10 @@ namespace std {
         // evaluate Rv following formula (3) of the assignement
 
         return r_q*Ru + V_mfv / (1+ Cu/K_mfu);
+    }
+
+    void evaluateCostFunction(mesh myMesh, Eigen::SparseMatrix<double> K, Eigen::ArrayXd f, Eigen::ArrayXd F, Eigen::ArrayXd C){
+        result = 
     }
 
 } // namespace std
