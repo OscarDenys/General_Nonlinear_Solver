@@ -128,9 +128,20 @@ int main() {
     }
     myFile<<"]';";
     std::cout<<std::endl;
+    std::cout<<"C0: ";
+    //for (int i = 0; i<f.size();i++){
+    for (int i = 0; i<10;i++){
+      std::cout<<f[i]<<" ";
+    }
+    std::cout<<std::endl;
+    std::cout<<"End of calculations C0..."<<std::endl;
+
     // Functie die second integral evalueert voor gegeven C --> H(c)
 
     Eigen::ArrayXd C0_array = C0.array();
+    bool flag = (C0_array.maxCoeff() < 1e6 && C0_array.minCoeff() > -1e6);
+    std::cout<<"flag: "<<flag;
+    
     Eigen::ArrayXd C_array(2*M);
 
     std::minimize_lm(myMesh, C_array, std::integral2nonlinear, C0_array);

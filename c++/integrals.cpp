@@ -153,7 +153,7 @@ namespace std {
         };
     } // integral2lin()
 
-    Eigen::ArrayXd integral2nonlinear(Eigen::ArrayXd C, mesh & myMesh) {
+    Eigen::ArrayXd integral2nonlinear(Eigen::ArrayXd C, mesh &myMesh) {
         Eigen::ArrayXd H(C.size()); // todo: vanzelf zero? 
         double Ru12, Ru13, Ru23;
         double Rv12, Rv13, Rv23;
@@ -161,7 +161,7 @@ namespace std {
         double det_jac;
         int n1, n2, n3;
         vector<int> currElem(3);
-        vector<float> P1(2), P2(2), P3(3);
+        vector<float> P1(2), P2(2), P3(2);
 
         int nbElements = myMesh.getNbElements();
 
@@ -170,6 +170,7 @@ namespace std {
             n1 = currElem[0];
             n2 = currElem[1];
             n3 = currElem[2];
+            
             myMesh.getNodeCoordinates(n1, P1);
             myMesh.getNodeCoordinates(n2, P2);
             myMesh.getNodeCoordinates(n3, P3);
