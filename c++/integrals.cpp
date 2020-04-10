@@ -145,16 +145,16 @@ namespace std {
 
             det_jac = detJac(P1,P2,P3);
 
-            f_lin[n1]   -= det_jac * Ru * (2*P1[0] + P2[0] + P3[0]) / 24;
-            f_lin[n2]   -= det_jac * Ru * (P1[0] + 2*P2[0] + P3[0]) / 24;
-            f_lin[n3]   -= det_jac * Ru * (P1[0] + P2[0] + 2*P3[0]) / 24;
+            f_lin[n1]   += det_jac * Ru * (2*P1[0] + P2[0] + P3[0]) / 24;
+            f_lin[n2]   += det_jac * Ru * (P1[0] + 2*P2[0] + P3[0]) / 24;
+            f_lin[n3]   += det_jac * Ru * (P1[0] + P2[0] + 2*P3[0]) / 24;
             f_lin[n1+M] -= det_jac * Rv * (2*P1[0] + P2[0] + P3[0]) / 24;
             f_lin[n2+M] -= det_jac * Rv * (P1[0] + 2*P2[0] + P3[0]) / 24;
             f_lin[n3+M] -= det_jac * Rv * (P1[0] + P2[0] + 2*P3[0]) / 24;
         };
     } // integral2lin()
 
-    Eigen::ArrayXd integral2nonlinear(Eigen::ArrayXd &C, mesh &myMesh) {
+    Eigen::ArrayXd integral2nonlinear(Eigen::ArrayXd &C, std::mesh &myMesh) {
         Eigen::ArrayXd H(C.size()); // todo: vanzelf zero? 
         double Ru12, Ru13, Ru23;
         double Rv12, Rv13, Rv23;
@@ -182,9 +182,9 @@ namespace std {
             evaluateRespiration(n1, n3, C, Ru13, Rv13);
             evaluateRespiration(n2, n3, C, Ru23, Rv23);
             // TODO: kloppen die mintekens hier?
-            H[n1]   -= det_jac * ((P1[0]+P2[0])*Ru12 + (P1[0] + P3[0])*Ru13) / 24;
-            H[n2]   -= det_jac * ((P1[0]+P2[0])*Ru12 + (P2[0] + P3[0])*Ru23) / 24;
-            H[n3]   -= det_jac * ((P1[0]+P3[0])*Ru13 + (P2[0] + P3[0])*Ru23) / 24;
+            H[n1]   += det_jac * ((P1[0]+P2[0])*Ru12 + (P1[0] + P3[0])*Ru13) / 24;
+            H[n2]   += det_jac * ((P1[0]+P2[0])*Ru12 + (P2[0] + P3[0])*Ru23) / 24;
+            H[n3]   += det_jac * ((P1[0]+P3[0])*Ru13 + (P2[0] + P3[0])*Ru23) / 24;
             H[n1+M] -= det_jac * ((P1[0]+P2[0])*Rv12 + (P1[0] + P3[0])*Rv13) / 24;
             H[n2+M] -= det_jac * ((P1[0]+P2[0])*Rv12 + (P2[0] + P3[0])*Rv23) / 24;
             H[n3+M] -= det_jac * ((P1[0]+P3[0])*Rv13 + (P2[0] + P3[0])*Rv23) / 24;
@@ -308,7 +308,7 @@ namespace std {
     } // integral3()
 
     double detJac(vector<float> P1, vector<float> P2, vector<float> P3) {
-        return double(P1[1]*P2[0] - P1[0]*P2[1] + P1[0]*P3[1] - P1[1]*P3[0] - P2[0]*P3[1] + P2[1]*P3[0]); // Bewerking op single prec floats opslaan in double precision float mag???
+        return abs(double(P1[1]*P2[0] - P1[0]*P2[1] + P1[0]*P3[1] - P1[1]*P3[0] - P2[0]*P3[1] + P2[1]*P3[0])); // Bewerking op single prec floats opslaan in double precision float mag???
     } // detJac                                                                                             //--> ja maar niet nodig want resultaat is ook single precision
 
 
@@ -362,7 +362,7 @@ namespace std {
 
     void evaluateCostFunction( Eigen::SparseMatrix<double> &K, Eigen::ArrayXd &f, Eigen::ArrayXd &C, Eigen::ArrayXd &F, mesh &myMesh){
         Eigen::VectorXd Kc = K * C.matrix();
-        F = Kc.array() + f + std::integral2nonlinear(C, myMesh);
+        F = Kc.array() + f + integral2nonlinear(C, myMesh);
 
     }
 
