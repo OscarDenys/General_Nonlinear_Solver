@@ -1,5 +1,5 @@
 %% simulation parameters (cf. table in assignement)
-
+clear all; close all; 
 T_cel = 25;
 nu_u = 20.8 / 100;
 nu_v = 0.04 / 100;
