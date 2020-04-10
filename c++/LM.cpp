@@ -145,7 +145,7 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     int Nf = F.size();
 
     // a log of the iterations
-    matxd x_iter(Nx, max_iters);
+    //matxd x_iter(Nx, max_iters);
     vectxd grad_iter(max_iters);
 
     // line search parameters
@@ -172,17 +172,17 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         double inf_norm_grad = grad.cwiseAbs().maxCoeff();
 
         // store x_k and inf_norm_grad in iteration log
-        x_iter.col(k) = x;
+        //x_iter.col(k) = x; 
         grad_iter(k) = inf_norm_grad;
 
         // print current log
         std::cout<< "iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << std::endl;
 
         // check for convergence
-        if (inf_norm_grad < grad_tol){
-            x_iter = x_iter.block(0,0,Nx,k);
+        if (inf_norm_grad < grad_tol ){
+            //x_iter = x_iter.block(0,0,Nx,k); // this gives a segmentation fault
             grad_iter = grad_iter.head(k);
-            std::cout<< "solution: "<< x << std::endl;
+            std::cout<< "solution length = 400-500?: "<< x.size() << std::endl;
             return;
         }
 
