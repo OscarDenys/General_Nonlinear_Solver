@@ -139,13 +139,12 @@ int main() {
     // Functie die second integral evalueert voor gegeven C --> H(c)
 
     Eigen::ArrayXd C0_array = C0.array();
-    Eigen::ArrayXd 
-    bool flag = (C0_array.maxCoeff() < 1e6 && C0_array.minCoeff() > -1e6);
-    std::cout<<"flag: "<<flag<<std::endl;;
+    Eigen::ArrayXd f_array = f.array();
     
     Eigen::ArrayXd C_array(2*M);
+    
 
-    std::minimize_lm(myMesh, C_array, std::integral2nonlinear, C0_array);
+    std::minimize_lm(myMesh, C_array, std::evaluateCostFunction, C0_array, Kmatrix, f_array);
 
 
 

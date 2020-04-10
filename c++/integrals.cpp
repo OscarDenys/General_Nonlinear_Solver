@@ -154,7 +154,7 @@ namespace std {
         };
     } // integral2lin()
 
-    Eigen::ArrayXd integral2nonlinear(Eigen::ArrayXd C, mesh &myMesh) {
+    Eigen::ArrayXd integral2nonlinear(Eigen::ArrayXd &C, mesh &myMesh) {
         Eigen::ArrayXd H(C.size()); // todo: vanzelf zero? 
         double Ru12, Ru13, Ru23;
         double Rv12, Rv13, Rv23;
@@ -360,8 +360,10 @@ namespace std {
         return r_q*Ru + V_mfv / (1+ Cu/K_mfu);
     }
 
-    void evaluateCostFunction(mesh myMesh, Eigen::SparseMatrix<double> K, Eigen::ArrayXd f, Eigen::ArrayXd F, Eigen::ArrayXd C){
-        result = 
+    void evaluateCostFunction( Eigen::SparseMatrix<double> &K, Eigen::ArrayXd &f, Eigen::ArrayXd &C, Eigen::ArrayXd &F, mesh &myMesh){
+        Eigen::VectorXd Kc = K * C.matrix();
+        F = Kc.array() + f + std::integral2nonlinear(C, myMesh);
+
     }
 
 } // namespace std
