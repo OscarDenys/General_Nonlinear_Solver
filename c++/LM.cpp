@@ -180,8 +180,8 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
 
         // check for convergence
         if (inf_norm_grad < grad_tol){
-            x_iter = x_iter.block(0,0,Nx,k);
-            grad_iter = grad_iter.head(k);
+            //x_iter = x_iter.block(0,0,Nx,k);
+            //grad_iter = grad_iter.head(k);
             std::cout<< "solution: "<< x << std::endl;
             return;
         }

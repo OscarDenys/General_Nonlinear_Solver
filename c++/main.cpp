@@ -127,11 +127,13 @@ int main() {
       myFile<<C0[i]<<" ";
     }
     myFile<<"]';";
+    myFile.close();
+
     std::cout<<std::endl;
     std::cout<<"C0: ";
     //for (int i = 0; i<f.size();i++){
-    for (int i = 0; i<10;i++){
-      std::cout<<f[i]<<" ";
+    for (int i = 0; i<C0.size();i++){
+      std::cout<<C0[i]<<" ";
     }
     std::cout<<std::endl;
     std::cout<<"End of calculations C0..."<<std::endl;
