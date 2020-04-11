@@ -84,9 +84,11 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
    
         % =====================   integraal 2 - lineair (5)
         % constant part
-        A1 = det_jac/24*120*lin_k*C_uamb *(2*P1(1) + P2(1) + P3(1));
-        A2 = det_jac/24*120*lin_k*C_uamb *(P1(1) + 2*P2(1) + P3(1));
-        A3 = det_jac/24*120*lin_k*C_uamb *(P1(1) + P2(1) + 2*P3(1));
+        [Ru, Rv] = evaluateR(C_uamb, C_vamb); 
+        
+        A1 = det_jac/24* Ru *(2*P1(1) + P2(1) + P3(1));
+        A2 = det_jac/24* Ru *(P1(1) + 2*P2(1) + P3(1));
+        A3 = det_jac/24* Ru *(P1(1) + P2(1) + 2*P3(1));
        
         % Change in tryp (is just a try-out) seems to fix the problem of
         % negative solutions...
@@ -119,17 +121,13 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
         
         % =====================   integraal 2 - lineair (6)
         % constant part
-        F1 = det_jac/24* (V_mfv/(1+C_uamb/K_mfu))* (2*P1(1) + P2(1) + P3(1));
-        F2 = det_jac/24* (V_mfv/(1+C_uamb/K_mfu))* (P1(1) + 2*P2(1) + P3(1));
-        F3 = det_jac/24* (V_mfv/(1+C_uamb/K_mfu))* (P1(1) + P2(1) + 2*P3(1));
-
-        A1 = det_jac/24* (120*lin_k*C_uamb)* r_q *(2*P1(1) + P2(1) + P3(1));
-        A2 = det_jac/24* (120*lin_k*C_uamb)* r_q *(P1(1) + 2*P2(1) + P3(1));
-        A3 = det_jac/24* (120*lin_k*C_uamb)* r_q *(P1(1) + P2(1) + 2*P3(1));
+        F1 = - det_jac/24* Rv * (2*P1(1) + P2(1) + P3(1));
+        F2 = - det_jac/24* Rv * (P1(1) + 2*P2(1) + P3(1));
+        F3 = - det_jac/24* Rv * (P1(1) + P2(1) + 2*P3(1);
         
-        f_lin(n1_) = f_lin(n1_) - F1 - A1; % negatief vanwege vgl (6)
-        f_lin(n2_) = f_lin(n2_) - F2 - A2;
-        f_lin(n3_) = f_lin(n3_) - F3 - A3;
+        f_lin(n1_) = f_lin(n1_) + F1; % negatief vanwege vgl (6)
+        f_lin(n2_) = f_lin(n2_) + F2;
+        f_lin(n3_) = f_lin(n3_) + F3;
         
         % part linear in c
 %         elem_stiff(1,1) = (6*P1(1) + 2*P2(1) + 2*P3(1)) *lin_k*det_jac*r_q;

@@ -33,7 +33,9 @@ OUTPUT
 - t: scaling of the step pk (returned)
 */
 // TODO misschien argument x0 en x samen gebruiken
-double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh&), arrayxd (*Ffun)(arrayxd, std::mesh&),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta, std::mesh &myMesh){
+double line_search(arrayxd & trial_x, double (*fun)(spmat&, arrayxd&, void (*Ffun)(spmat &, arrayxd &, arrayxd&, arrayxd&, std::mesh&), arrayxd& x, 
+        std::mesh&), void (*Ffun)(spmat &, arrayxd &, arrayxd&, arrayxd&, std::mesh&),  arrayxd& x0, double Jpk, arrayxd pk, double gamma, double beta,
+         std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
 
     // assert that gamma and beta are in a reasonable range
     assert(gamma >= 0 && gamma <=1);
@@ -43,11 +45,11 @@ double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd, std
 
     // initialize t, evaluate function
     double t = 1;
-    double f0 = (*fun)(Ffun, x0, myMesh);         
+    double f0 = (*fun)(Kstelsel, fstelsel, Ffun, x0, myMesh);         
 
     trial_x = x0 + t*pk; 
 
-    while ( (*fun)(Ffun, trial_x, myMesh) > f0 + gamma*t*Jpk ){
+    while ( (*fun)(Kstelsel,fstelsel, Ffun, trial_x, myMesh) > f0 + gamma*t*Jpk ){
         // trial step in x
         t = beta*t;
         trial_x = x0 + t*pk;
@@ -72,20 +74,24 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0, std::mesh &myMesh){
+void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
+        std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
 
     int Nx = x0.size();
-    f0 = (*Ffun)(x0, myMesh);
+    (*Ffun)(Kstelsel, fstelsel, x0, f0, myMesh);
 
     // perform finite difference jacobian evaluation
     double h = 1e-6; // stepsize for first order approximation
     std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
 
+    arrayxd x = x0;
+    arrayxd f(x0.size());
+    arrayxd Jcolj(x0.size());
+
     for (int j = 0; j < Nx; j++){
-        arrayxd x = x0;
         x(j) += h;
-        arrayxd f = (*Ffun)(x, myMesh);
-        arrayxd Jcolj = (f-f0)*(1/h);
+        (*Ffun)(Kstelsel, fstelsel, x, f, myMesh);
+        Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
             if (Jcolj(i) != 0){
@@ -106,8 +112,9 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F(x))
 */
-double f(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh &myMesh){
-    arrayxd F = (*Ffun)(x, myMesh);
+double f(spmat & Kstelsel, arrayxd& fstelsel, void (*Ffun)(spmat &, arrayxd &, arrayxd&, arrayxd&, std::mesh&), arrayxd &x, std::mesh &myMesh){
+    arrayxd F(x.size());
+    (*Ffun)(Kstelsel, fstelsel,x, F, myMesh);
     double f = 0.5*(F.cwiseProduct(F).sum()); // dit is OK
     return f;
 }
@@ -126,18 +133,19 @@ OUTPUT
 - grad_iter: norm of gradient in each iteration
 */
 // TODO (eventueel) :void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
-void minimize_lm(std::mesh &myMesh, arrayxd & x, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0){
+void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
     // convergence tolerance
     double grad_tol = 1e-4;
     int max_iters = 200;
   
-    arrayxd F = (*Ffun)(x0, myMesh);
+    arrayxd F(x0.size());
+    (*Ffun)(Kstelsel, fstelsel,x0, F, myMesh);
     int Nx = x0.size();
     int Nf = F.size();
 
     // a log of the iterations
-    matxd x_iter(Nx, max_iters);
+    //matxd x_iter(Nx, max_iters);
     vectxd grad_iter(max_iters);
 
     // line search parameters
@@ -157,23 +165,24 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, arrayxd (*Ffun)(arrayxd, std::m
         assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // or x.cwiseAbs().maxCoeff() < 1e6
 
         // evaluate F and it's jacobian J
-        finite_difference_jacob(F, J, Ffun, x, myMesh);
+        finite_difference_jacob(F, J, Ffun, x, myMesh, Kstelsel, fstelsel);
 
         //convergence criteria
         vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x)
         double inf_norm_grad = grad.cwiseAbs().maxCoeff();
 
         // store x_k and inf_norm_grad in iteration log
-        x_iter.col(k) = x;
+        //x_iter.col(k) = x; 
         grad_iter(k) = inf_norm_grad;
 
         // print current log
         std::cout<< "iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << std::endl;
 
         // check for convergence
-        if (inf_norm_grad < grad_tol){
-            x_iter = x_iter.block(0,0,Nx,k);
+        if (inf_norm_grad < grad_tol ){
+            //x_iter = x_iter.block(0,0,Nx,k); // this gives a segmentation fault
             grad_iter = grad_iter.head(k);
+            std::cout<< "solution length = 400-500?: "<< x.size() << std::endl;
             return;
         }
 
@@ -199,7 +208,7 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, arrayxd (*Ffun)(arrayxd, std::m
         
         // line search
         double Jpk = grad.dot(pk); 
-        line_search(x, f, Ffun, x, Jpk, pk, gamma, beta, myMesh);
+        line_search(x, f, Ffun, x, Jpk, pk, gamma, beta, myMesh,  Kstelsel, fstelsel);
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;

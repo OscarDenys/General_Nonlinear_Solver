@@ -6,11 +6,13 @@
 #include <iostream>
 #include "mesh.hpp"
 
+
 typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> Trip;
 typedef Eigen::VectorXd vectxd;
 typedef Eigen::MatrixXd matxd;
 typedef Eigen::ArrayXd arrayxd;
+
 
 namespace std {
 
@@ -30,7 +32,11 @@ OUTPUT
 - trial_x = x0 + t*pk
 - t: scaling of the step pk (returned)
 */
-double line_search(arrayxd & trial_x, double (*fun)(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh&), arrayxd (*Ffun)(arrayxd, std::mesh&),  arrayxd x0, double Jpk, arrayxd pk, double gamma, double beta, std::mesh &myMesh);
+// TODO misschien argument x0 en x samen gebruiken
+double line_search(arrayxd & trial_x, double (*fun)(spmat&, arrayxd&, void (*Ffun)(spmat &, arrayxd &, arrayxd&, arrayxd&, std::mesh&), arrayxd& x, 
+        std::mesh&), void (*Ffun)(spmat &, arrayxd &, arrayxd&, arrayxd&, std::mesh&),  arrayxd& x0, double Jpk, arrayxd pk, double gamma, double beta,
+         std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel);
+
 
 /*
 Finite difference approximation of the Jacobian.
@@ -43,7 +49,8 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-void finite_difference_jacob(arrayxd & f0, spmat & J, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0, std::mesh &myMesh);
+void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
+        std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel);
 
 /*
 Scalar objective function.
@@ -54,20 +61,7 @@ INPUT
 OUTPUT
 - f: (double) f(x) = 0.5*L2-norm(F(x))
 */
-/*
-double f(vectxd (*Ffun)(vectxd), vectxd x);
-*/
-
-/*
-Scalar objective function.
-
-INPUT
-- F = F(x) uitgewerkt voor een zekere x
-OUTPUT
-- f: (double) f(x) = 0.5*L2-norm(F)
-*/
-double f(arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x, std::mesh &myMesh);
-
+double f(spmat & Kstelsel, arrayxd& fstelsel, void (*Ffun)(spmat &, arrayxd &, arrayxd&, arrayxd&, std::mesh&), arrayxd &x, std::mesh &myMesh);
 
 
 /*
@@ -79,12 +73,11 @@ INPUT
 - alpha_k: weighting parameter to penalize norm(step) (TODO)
 OUTPUT
 - solution vector x
-- x_iter: each of the intermediate values xk 
+- x_iter: each of the intermediate values xk
 - grad_iter: norm of gradient in each iteration
 */
-void minimize_lm(std::mesh &myMesh, arrayxd & x, arrayxd (*Ffun)(arrayxd, std::mesh&), arrayxd x0);
-//void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
+// TODO (eventueel) :void minimize_lm(vectxd x, matxd x_iter, vectxd grad_iter, arrayxxd (*Ffun)(vectxd), vectxd x0);
+void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel);
 
- // end namespace std
 
-};
+} // end namespace std
