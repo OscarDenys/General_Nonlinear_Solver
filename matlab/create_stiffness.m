@@ -1,4 +1,4 @@
-function [K, K_lin, f, f_lin] = create_stiffness(mesh)
+function [K, K_lin, f, f_lin] = create_stiffness(mesh, vars)
     load('var.mat');
     % finite elements
     nodes = mesh.Nodes;
@@ -10,7 +10,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
     %boundary_nodes = [1 8:-1:5 2]; % Hardcode Hmin = 0.25
     %boundary_nodes = [1 329:-1:135 2]; % Hmin = Hmax = 0.0009;
     %boundary_nodes = [1 85:-1:36 2]; % 'Hmax',0.0035,'Hmin',0.001, 'Hgrad', 2
-    boundary_nodes = [1 99:-1:42 2]; % 'Hmax',0.003,'Hmin',0.001, 'Hgrad', 2
+    boundary_nodes = [1 75:-1:32 2]; % 'Hmax',0.003,'Hmin',0.001, 'Hgrad', 2
     
     % all constants with prefix lin_ are used for the linearised second
     % integral
@@ -84,7 +84,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
    
         % =====================   integraal 2 - lineair (5)
         % constant part
-        [Ru, Rv] = evaluateR(C_uamb, C_vamb); 
+        [Ru, Rv] = evaluateR(C_uamb, C_vamb, vars); 
         
         A1 = det_jac/24* Ru *(2*P1(1) + P2(1) + P3(1));
         A2 = det_jac/24* Ru *(P1(1) + 2*P2(1) + P3(1));
@@ -123,7 +123,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
         % constant part
         F1 = - det_jac/24* Rv * (2*P1(1) + P2(1) + P3(1));
         F2 = - det_jac/24* Rv * (P1(1) + 2*P2(1) + P3(1));
-        F3 = - det_jac/24* Rv * (P1(1) + P2(1) + 2*P3(1);
+        F3 = - det_jac/24* Rv * (P1(1) + P2(1) + 2*P3(1));
         
         f_lin(n1_) = f_lin(n1_) + F1; % negatief vanwege vgl (6)
         f_lin(n2_) = f_lin(n2_) + F2;

@@ -100,15 +100,17 @@ a = 0.117644615194776;
 b = 61.175199901283264;
 
 % Get stiffness matrix K and constant term f:
-[K, K_lin, f, f_lin] = create_stiffness(mesh);
+[K, K_lin, f, f_lin] = create_stiffness(mesh, vars);
 % f = [a*f(1:length(nodes)); b*f(length(nodes)+1:end)];
 % First solution: 
 C_0 = (K) \ -(f+f_lin);
 %C_0 = K\-(f+f_lin_gross);
-err = K * [(1/a)*ones(length(nodes),1); (1/b)*ones(length(nodes),1)];
-test = err - f;
-test1 = norm(err)
-test2 = norm(err - f)
+
+
+% err = K * [(1/a)*ones(length(nodes),1); (1/b)*ones(length(nodes),1)];
+% test = err - f;
+% test1 = norm(err)
+% test2 = norm(err - f)
 
 % Shift O2 upwards: 
 % maximum = max(abs(C_0));
