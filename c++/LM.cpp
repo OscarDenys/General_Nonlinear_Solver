@@ -58,7 +58,6 @@ double line_search(arrayxd & trial_x, double (*fun)(spmat&, arrayxd&, void (*Ffu
         max_nb_steps_counter -= 1;
         assert(max_nb_steps_counter > 0);
     }
-
     return t;
 }
 
@@ -136,7 +135,7 @@ OUTPUT
 void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
     // convergence tolerance
-    double grad_tol = 1e-10;
+    double grad_tol = 1e-6;
     int max_iters = 200;
   
     arrayxd F(x0.size());
@@ -153,7 +152,9 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     double beta = 0.6;
 
     // Levenberg-Marquardt: norm penalisation parameter lambda
-    double lambda = 0.01;
+    double lambda = 0.5; // lamda large causes the step to be more like gradient, lambda small causes the step to be more like Gauss-Newton
+    double lamdascaling = 0.8; 
+
 
     // loop initialization
     x = x0;
@@ -175,11 +176,8 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         //x_iter.col(k) = x; 
         grad_iter(k) = inf_norm_grad;
 
-        // print current log
-        std::cout<< "iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << std::endl;
-
         // check for convergence
-        if (inf_norm_grad < grad_tol){
+        if (inf_norm_grad < grad_tol ){
             //x_iter = x_iter.block(0,0,Nx,k);
             //grad_iter = grad_iter.head(k);
             std::cout<< "solution: "<< x << std::endl;
@@ -190,13 +188,13 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
 
         spmat A = J.transpose() * J; 
         for (int i; i < A.rows(); i++){
-            A.coeffRef(i,i) = (A.coeffRef(i,i) + 0.01) * lambda;
+            A.coeffRef(i,i) = A.coeffRef(i,i)  + lambda;
         }
         
         A.makeCompressed();
         //Sparse LU solver: 
             // A*pk = b 
-            //  A = J'J + lambda * (diag(J'J) + diag(0.01));
+            //  A = J'J + lambda * I                //scale invariant version (Fletcher) : J'J + lambda * diag(J'J) ; **zie uitleg onderaan
             //  b = -grad;
         Eigen::SparseLU<Eigen::SparseMatrix<double> > solverA;
         solverA.analyzePattern(A);
@@ -206,9 +204,30 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         }
         vectxd pk = solverA.solve(-grad); 
         
-        // line search
+        // line search: x = x_new
         double Jpk = grad.dot(pk); 
-        line_search(x, f, Ffun, x, Jpk, pk, gamma, beta, myMesh,  Kstelsel, fstelsel);
+
+        if (k > 1) {
+            arrayxd xold = x;
+            double fxold = f(Kstelsel,fstelsel, Ffun, x, myMesh);
+            line_search(x, f, Ffun, x, Jpk, pk, gamma, beta, myMesh,  Kstelsel, fstelsel);
+            double fxnew = f(Kstelsel,fstelsel, Ffun, x, myMesh);
+
+            if (fxnew < fxold){ // step accepted and lambda decreased to make the next step more like fast Gauss Newton step
+                lambda = lambda * lamdascaling;
+                if (fxnew < 1e-16) {
+                    std::cout<<"minimize_lm: fxnew < 1e-16 "<< std::endl;
+                    return;
+                }
+            }
+            else{ // step declined and lambda increased to make the next step more like the stable gradient descent step
+                lambda = lambda / lamdascaling;
+                x = xold;
+            }
+        }
+
+        // print current log
+        std::cout<< "iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << f(Kstelsel,fstelsel, Ffun, x, myMesh) << std::endl;
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
@@ -217,3 +236,12 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
 
 
 } // end namespace std
+
+/*  **Uitleg scale invariant version (Fletcher) : J'J + lambda * diag(J'J) 
+
+Levenberg's algorithm has the disadvantage that if the value of damping factor lambda  is large, inverting J'J + lambda * I is not used at all.
+ Fletcher provided the insight that we can scale each component of the gradient according to the curvature, 
+  so that there is larger movement along the directions where the gradient is smaller. 
+ This avoids slow convergence in the direction of small gradient. 
+ Therefore, Fletcher in his 1971 paper A modified Marquardt subroutine for non-linear least squares replaced the identity matrix
+ with the diagonal matrix consisting of the diagonal elements of J'J, thus making the solution scale invariant:*/
