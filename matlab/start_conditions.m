@@ -69,7 +69,7 @@ figure(1); clf;
 subplot(121); pdegplot(model,'EdgeLabels','off'); ylim([-0.02 0.12]); axis off;
 subplot(122); pdemesh(model,'NodeLabels','on'); ylim([-0.02 0.12]); axis off;
 
-
+save('mesh.mat', 'mesh')
 
 %% export mesh to text file
 
@@ -100,12 +100,15 @@ a = 0.117644615194776;
 b = 61.175199901283264;
 
 % Get stiffness matrix K and constant term f:
-[K, K_lin, f, f_lin] = create_stiffness(mesh, vars);
+%[K, K_lin, f, f_lin] = create_stiffness(mesh, vars);
+[K, K_lin, f, f_lin] = create_stiffness_2(mesh);
 % f = [a*f(1:length(nodes)); b*f(length(nodes)+1:end)];
 % First solution: 
-C_0 = (K) \ -(f+f_lin);
+
+C_0 = (K+K_lin) \ -(f+f_lin);
 %C_0 = K\-(f+f_lin_gross);
 
+CAMB = [C_uamb*ones(length(f)/2, 1); C_vamb*ones(length(f)/2, 1)];
 
 % err = K * [(1/a)*ones(length(nodes),1); (1/b)*ones(length(nodes),1)];
 % test = err - f;
@@ -113,11 +116,17 @@ C_0 = (K) \ -(f+f_lin);
 % test2 = norm(err - f)
 
 % Shift O2 upwards: 
-% maximum = max(abs(C_0));
-% C_0(1:length(nodes)) = maximum + C_0(1:length(nodes));
+%  maximum = max(abs(C_0));
+%  C_0 = maximum*ones(length(C_0),1)+C_0;
+% for elem = 1:length(C_0)/2
+%     C_0(elem) = 15*C_0(elem);
+% end 
+% for elem = length(C_0)/2+1:length(C_0)
+%     C_0(elem) = 3*C_0(elem);
+% end 
 
 
-%%
+
 % Plot initial solution found by linearisation: 
 C_0_plot = C_0 * R_g * T / p_atm;
 figure(1); clf;
@@ -144,29 +153,7 @@ pdeplot(model,'XYData',C_0_plot(length(nodes)+1:end),'ZData',C_0_plot(length(nod
 % shading interp
 % colorbar();
 
-%% Test eval_nonlinear: 
 
-%H = eval_nonlinear(mesh, [ones(length(nodes),1)*C_uamb; ones(length(nodes),1)*C_vamb], vars);
-H = eval_nonlinear(mesh, C_0, vars);
-figure(1); clf;
-subplot(221); hold on;
-pdeplot(model,'XYData',H(1:length(nodes)),'Contour','on','ColorMap','jet');
-title('O_2 concentration');
-subplot(223);
-pdeplot(model,'XYData',H(1:length(nodes)),'ZData',H(1:length(nodes)),'ColorMap','jet');
-% scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
-% trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
-% shading interp
-% colorbar();
-
-
-
-subplot(222);
-hold on;
-pdeplot(model,'XYData',H(length(nodes)+1:end),'Contour','on','ColorMap','jet');
-title('CO_2 concentration');
-subplot(224);
-pdeplot(model,'XYData',H(length(nodes)+1:end),'ZData',H(length(nodes)+1:end),'ColorMap','jet');
 
 %% Solve nonlinear system (with intermediate plots) 
 options = optimoptions('fsolve',...
@@ -200,6 +187,31 @@ pdeplot(model,'XYData',Cplot(length(nodes)+1:end),'ZData',Cplot(length(nodes)+1:
 % trisurf(triangleLabels', nodes(1,:), nodes(2,:), C(length(nodes)+1:end))
 % shading interp
 % colorbar();
+
+%% Test eval_nonlinear: 
+
+%H = eval_nonlinear(mesh, [ones(length(nodes),1)*C_uamb; ones(length(nodes),1)*C_vamb], vars);
+H = eval_nonlinear(mesh, C_0, vars);
+figure(1); clf;
+subplot(221); hold on;
+pdeplot(model,'XYData',H(1:length(nodes)),'Contour','on','ColorMap','jet');
+title('O_2 concentration');
+subplot(223);
+pdeplot(model,'XYData',H(1:length(nodes)),'ZData',H(1:length(nodes)),'ColorMap','jet');
+% scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+% trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
+% shading interp
+% colorbar();
+
+
+
+subplot(222);
+hold on;
+pdeplot(model,'XYData',H(length(nodes)+1:end),'Contour','on','ColorMap','jet');
+title('CO_2 concentration');
+subplot(224);
+pdeplot(model,'XYData',H(length(nodes)+1:end),'ZData',H(length(nodes)+1:end),'ColorMap','jet');
+
 
 %% Functions (load this before the rest...) 
 
@@ -238,4 +250,5 @@ function stop = outfun(C_, optimValues, stats)
      end
 
 end
+
 
