@@ -179,10 +179,17 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         std::cout<< "iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << std::endl;
 
         // check for convergence
+<<<<<<< HEAD
         if (inf_norm_grad < grad_tol ){
             //x_iter = x_iter.block(0,0,Nx,k); // this gives a segmentation fault
             grad_iter = grad_iter.head(k);
             std::cout<< "solution length = 400-500?: "<< x.size() << std::endl;
+=======
+        if (inf_norm_grad < grad_tol){
+            //x_iter = x_iter.block(0,0,Nx,k);
+            //grad_iter = grad_iter.head(k);
+            std::cout<< "solution: "<< x << std::endl;
+>>>>>>> 8bd5f3421404f077da216f2d96d6f09b81a6b696
             return;
         }
 

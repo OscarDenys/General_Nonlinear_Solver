@@ -60,7 +60,7 @@ telements = tr.ConnectivityList';
 
 geometryFromMesh(model,tnodes,telements);   % create 
 clear tnodes telements tr pgon;
-mesh = generateMesh(model,'GeometricOrder','linear','Hmax',0.003,'Hmin',0.001, 'Hgrad', 2);
+mesh = generateMesh(model,'GeometricOrder','linear','Hmax',0.004,'Hmin',0.001, 'Hgrad', 1.5);
 
 global nodes
 nodes = mesh.Nodes;
@@ -83,8 +83,8 @@ for i=1:length(t(1,:))
         triangleLabels(3*(i-1)+j) = t(j,i);
     end
 end 
-edge1Labels = [1 3:33 2];		% vertical edge, top to bottom
-edge2Labels = [1 80:-1:34 2];	% round edge, top to bottom
+edge1Labels = [1 3:31 2];		% vertical edge, top to bottom
+edge2Labels = [1 75:-1:32 2];	% round edge, top to bottom
 sizes = [length(Points(1,:)), length(triangleLabels), length(edge1Labels), length(edge2Labels) ];
 
 writematrix(Points(1,:),'../c++/mesh1/Xpoints.txt','Delimiter',' ')  ;
