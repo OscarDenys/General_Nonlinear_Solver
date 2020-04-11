@@ -9,7 +9,8 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh)
     %boundary_nodes = [1 80:-1:34 2]; %'Hmax',0.005,'Hmin',0.0005
     %boundary_nodes = [1 8:-1:5 2]; % Hardcode Hmin = 0.25
     %boundary_nodes = [1 329:-1:135 2]; % Hmin = Hmax = 0.0009;
-    boundary_nodes = [1 60:-1:26 2]; 
+    %boundary_nodes = [1 85:-1:36 2]; % 'Hmax',0.0035,'Hmin',0.001, 'Hgrad', 2
+    boundary_nodes = [1 99:-1:42 2]; % 'Hmax',0.003,'Hmin',0.001, 'Hgrad', 2
     
     % all constants with prefix lin_ are used for the linearised second
     % integral

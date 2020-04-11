@@ -1,5 +1,5 @@
 %% simulation parameters (cf. table in assignement)
-clear all; close all; 
+% clear all; % close all; 
 T_cel = 25;
 nu_u = 20.8 / 100;
 nu_v = 0.04 / 100;
@@ -60,14 +60,14 @@ telements = tr.ConnectivityList';
 
 geometryFromMesh(model,tnodes,telements);   % create 
 clear tnodes telements tr pgon;
-mesh = generateMesh(model,'GeometricOrder','linear','Hmax',0.005,'Hmin',0.002, 'Hgrad', 1.5);
+mesh = generateMesh(model,'GeometricOrder','linear','Hmax',0.003,'Hmin',0.001, 'Hgrad', 2);
 
 global nodes
 nodes = mesh.Nodes;
 
 figure(1); clf;
-subplot(121); pdegplot(model,'EdgeLabels','off'); ylim([0 0.2]); axis off;
-subplot(122); pdemesh(model,'NodeLabels','on'); ylim([0 0.2]); axis off;
+subplot(121); pdegplot(model,'EdgeLabels','off'); ylim([-0.02 0.12]); axis off;
+subplot(122); pdemesh(model,'NodeLabels','on'); ylim([-0.02 0.12]); axis off;
 
 
 
@@ -88,41 +88,34 @@ edge2Labels = [1 80:-1:34 2];	% round edge, top to bottom
 sizes = [length(Points(1,:)), length(triangleLabels), length(edge1Labels), length(edge2Labels) ];
 
 writematrix(Points(1,:),'../c++/mesh1/Xpoints.txt','Delimiter',' ')  ;
-
-
 writematrix(Points(2,:),'../c++/mesh1/Ypoints.txt','Delimiter',' ')  ;
-
-
 writematrix(edge1Labels-1,'../c++/mesh1/edge1Labels.txt','Delimiter',' ');  
-
-
 writematrix(edge2Labels-1,'../c++/mesh1/edge2Labels.txt','Delimiter',' ');  
-
-
 writematrix(triangleLabels-1,'../c++/mesh1/triangleLabels.txt','Delimiter',' ');  
-  
-
 writematrix(sizes,'../c++/mesh1/sizes.txt','Delimiter',' ');  
-  
         
 %% Get initial solution (linearisation) & stiffness matrix
 
+a = 0.117644615194776;
+b = 61.175199901283264;
 
 % Get stiffness matrix K and constant term f:
 [K, K_lin, f, f_lin] = create_stiffness(mesh);
-
+% f = [a*f(1:length(nodes)); b*f(length(nodes)+1:end)];
 % First solution: 
 C_0 = (K) \ -(f+f_lin);
 %C_0 = K\-(f+f_lin_gross);
-
-%C_0(C_0<0) = 0;
+err = K * [(1/a)*ones(length(nodes),1); (1/b)*ones(length(nodes),1)];
+test = err - f;
+test1 = norm(err)
+test2 = norm(err - f)
 
 % Shift O2 upwards: 
-%maximum = max(abs(C_0));
-%C_0(1:length(nodes)) = maximum + C_0(1:length(nodes));
+% maximum = max(abs(C_0));
+% C_0(1:length(nodes)) = maximum + C_0(1:length(nodes));
 
 
-
+%%
 % Plot initial solution found by linearisation: 
 C_0_plot = C_0 * R_g * T / p_atm;
 figure(1); clf;
@@ -219,7 +212,8 @@ function stop = outfun(C_, optimValues, stats)
         
     
         subplot(121); hold on;
-        pdeplot(model,'XYData',Cplot(1:length(nodes)));
+        ylim([0 0.12]); axis equal;
+        pdeplot(model,'XYData',Cplot(1:length(nodes)),'Contour','on','ColorMap','jet');
         title('O_2 concentration: nonlinear');
         %scatter3(nodes(1,:), nodes(2,:), C_0(1:length(nodes)));
         %trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_(1:length(nodes)));
@@ -228,7 +222,8 @@ function stop = outfun(C_, optimValues, stats)
 
         subplot(122);
         hold on;
-        pdeplot(model,'XYData',Cplot(length(nodes)+1:end));
+        ylim([0 0.12]); axis equal;
+        pdeplot(model,'XYData',Cplot(length(nodes)+1:end),'Contour','on','ColorMap','jet');
         title('CO_2 concentration: nonlinear');
         %scatter3(nodes(1,:), nodes(2,:), C_0(length(nodes)+1:end))
         %trisurf(triangleLabels', nodes(1,:), nodes(2,:), C_(length(nodes)+1:end))
