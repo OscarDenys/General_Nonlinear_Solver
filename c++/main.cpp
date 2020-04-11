@@ -128,7 +128,10 @@ int main() {
     }
     myFile<<"]';";
     myFile.close();
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     std::cout<<std::endl;
     std::cout<<"C0: ";
     //for (int i = 0; i<f.size();i++){

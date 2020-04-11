@@ -136,7 +136,7 @@ OUTPUT
 void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
     // convergence tolerance
-    double grad_tol = 1e-4;
+    double grad_tol = 1e-10;
     int max_iters = 200;
   
     arrayxd F(x0.size());
@@ -196,7 +196,7 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         A.makeCompressed();
         //Sparse LU solver: 
             // A*pk = b 
-            //  A = J'J + lambda * (diag(J'J) + 0.01);
+            //  A = J'J + lambda * (diag(J'J) + diag(0.01));
             //  b = -grad;
         Eigen::SparseLU<Eigen::SparseMatrix<double> > solverA;
         solverA.analyzePattern(A);
