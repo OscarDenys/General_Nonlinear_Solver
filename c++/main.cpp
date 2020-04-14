@@ -128,15 +128,15 @@ int main() {
     }
     myFile<<"]';";
     myFile.close();
+    std::cout<<std::endl;
 
-    std::cout<<std::endl;
-    std::cout<<"C0: ";
+    //std::cout<<"C0: ";
     //for (int i = 0; i<f.size();i++){
-    for (int i = 0; i<C0.size();i++){
-      std::cout<<C0[i]<<" ";
-    }
-    std::cout<<std::endl;
-    std::cout<<"End of calculations C0..."<<std::endl;
+    //for (int i = 0; i<C0.size();i++){
+    //  std::cout<<C0[i]<<" ";
+    //}
+    //std::cout<<std::endl;
+    //std::cout<<"End of calculations C0..."<<std::endl;
 
     // Functie die second integral evalueert voor gegeven C --> H(c)
 
@@ -148,7 +148,31 @@ int main() {
 
     std::minimize_lm(myMesh, C_array, std::evaluateCostFunction, C0_array, Kmatrix, f_array);
 
+    Eigen::VectorXd C_nonlin = C_array.matrix();
 
+    // print first 15 elements of C0 and C nonlin for comparison
+    std::cout<<"C nonlin : ";
+    for (int i = 0; i<15;i++){
+      std::cout<<C_nonlin[i]<<" ";
+    }
+    std::cout<<std::endl;
+
+    std::cout<<"C 0 : ";
+    for (int i = 0; i<15;i++){
+      std::cout<<C0[i]<<" ";
+    }
+    std::cout<<std::endl;
+
+    // write C nonlin to matlab file
+    std::ofstream myFileNonLin;
+    myFileNonLin.open("../matlab/cnonlin_output.m");
+    myFileNonLin<<"C_nonlin = [ ";
+    for (int i = 0; i<C_nonlin.size();i++){
+      myFileNonLin<<C_nonlin[i]<<" ";
+    }
+    myFileNonLin<<"]';";
+    myFileNonLin.close();
+    std::cout<<std::endl;
 
     // integral2nonlinear(myMesh, C_current, H); // Sibren_functions OK!
 
