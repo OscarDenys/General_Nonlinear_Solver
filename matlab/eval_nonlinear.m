@@ -31,10 +31,10 @@ function [b] = eval_nonlinear(mesh, C, vars)
         [resp23u, resp23v] = respiration(n2,n3,C, vars);
 
         % =====================   integraal 2 - lineair (5)
-        
-        b(n1) = b(n1) + det_jac * ((P1(1) + P2(1))*resp12u + (P1(1)+P3(1))*resp13u)/24;
-        b(n2) = b(n2) + det_jac * ((P1(1) + P2(1))*resp12u + (P2(1)+P3(1))*resp23u)/24;
-        b(n3) = b(n3) + det_jac * ((P1(1) + P3(1))*resp13u + (P2(1)+P3(1))*resp23u)/24;
+        factor = 24;
+        b(n1) = b(n1) + det_jac * ((P1(1) + P2(1))*resp12u + (P1(1)+P3(1))*resp13u)/factor;
+        b(n2) = b(n2) + det_jac * ((P1(1) + P2(1))*resp12u + (P2(1)+P3(1))*resp23u)/factor;
+        b(n3) = b(n3) + det_jac * ((P1(1) + P3(1))*resp13u + (P2(1)+P3(1))*resp23u)/factor;
         
       
         % =====================   integraal 2 - lineair (6)
@@ -42,9 +42,9 @@ function [b] = eval_nonlinear(mesh, C, vars)
         n2 = element(2) + nb_nodes;
         n3 = element(3) + nb_nodes;
 
-        b(n1) = b(n1) - det_jac * ((P1(1) + P2(1))*resp12v + (P1(1)+P3(1))*resp13v)/24;
-        b(n2) = b(n2) - det_jac * ((P1(1) + P2(1))*resp12v + (P2(1)+P3(1))*resp23v)/24;
-        b(n3) = b(n3) - det_jac * ((P1(1) + P3(1))*resp13v + (P2(1)+P3(1))*resp23v)/24;
+        b(n1) = b(n1) - det_jac * ((P1(1) + P2(1))*resp12v + (P1(1)+P3(1))*resp13v)/factor;
+        b(n2) = b(n2) - det_jac * ((P1(1) + P2(1))*resp12v + (P2(1)+P3(1))*resp23v)/factor;
+        b(n3) = b(n3) - det_jac * ((P1(1) + P3(1))*resp13v + (P2(1)+P3(1))*resp23v)/factor;
 
 
     end
