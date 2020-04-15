@@ -77,10 +77,10 @@ void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, array
         std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
 
     int Nx = x0.size();
-    (*Ffun)(Kstelsel, fstelsel, x0, f0, myMesh);
+    (*Ffun)(Kstelsel, fstelsel, x0, f0, myMesh); // F0 = F(x0)
 
     // perform finite difference jacobian evaluation
-    double h = 1e-6; // stepsize for first order approximation
+    double h = 1e-6; // stepsize for first order approximation // original 1e-6
     std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
 
     arrayxd x = x0;
@@ -135,7 +135,7 @@ OUTPUT
 void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
     // convergence tolerance
-    double grad_tol = 1e-6;
+    double grad_tol = 1e-8; // original 1e-4 denk ik
     int max_iters = 200;
   
     arrayxd F(x0.size());
@@ -160,10 +160,12 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     x = x0;
     spmat J(Nf,Nx);
 
+    int count_fxsmall = 0;
+
     for (int k=1; k <= max_iters; k++){
 
         // check for divergence
-        assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // or x.cwiseAbs().maxCoeff() < 1e6
+        assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // equivalent: x.cwiseAbs().maxCoeff() < 1e6
 
         // evaluate F and it's jacobian J
         finite_difference_jacob(F, J, Ffun, x, myMesh, Kstelsel, fstelsel);
@@ -178,9 +180,9 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
 
         // check for convergence
         if (inf_norm_grad < grad_tol ){
-            //x_iter = x_iter.block(0,0,Nx,k);
+            //x_iter = x_iter.block(0,0,Nx,k); // this gave segmentation fault
             //grad_iter = grad_iter.head(k);
-            std::cout<< "solution: "<< x << std::endl;
+            //std::cout<< "solution : "<< x  << std::endl;
             return;
         }
 
@@ -207,27 +209,36 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         // line search: x = x_new
         double Jpk = grad.dot(pk); 
 
-        if (k > 1) {
-            arrayxd xold = x;
-            double fxold = f(Kstelsel,fstelsel, Ffun, x, myMesh);
-            line_search(x, f, Ffun, x, Jpk, pk, gamma, beta, myMesh,  Kstelsel, fstelsel);
-            double fxnew = f(Kstelsel,fstelsel, Ffun, x, myMesh);
 
-            if (fxnew < fxold){ // step accepted and lambda decreased to make the next step more like fast Gauss Newton step
+        //if (k > 1) {
+            arrayxd xold = x;
+            double fxold = f(Kstelsel,fstelsel, Ffun, xold, myMesh);
+            line_search(x, f, Ffun, xold, Jpk, pk, gamma, beta, myMesh,  Kstelsel, fstelsel);
+            double fxnew = f(Kstelsel,fstelsel, Ffun, x, myMesh);
+        if (k > 1) {
+            if (fxnew < fxold){ // step accepted and lambda decreased to make the next step more like the Gauss Newton step (faster than gradient descent)
                 lambda = lambda * lamdascaling;
-                if (fxnew < 1e-16) {
-                    std::cout<<"minimize_lm: fxnew < 1e-16 "<< std::endl;
-                    return;
-                }
             }
             else{ // step declined and lambda increased to make the next step more like the stable gradient descent step
                 lambda = lambda / lamdascaling;
                 x = xold;
             }
+
+            if (fxnew < 1e-16) {
+                    std::cout<<"minimize_lm: fxnew smaller than 1e-16 counter ="<< count_fxsmall<< std::endl;
+                    count_fxsmall = count_fxsmall + 1;
+            }
         }
 
         // print current log
         std::cout<< "iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << f(Kstelsel,fstelsel, Ffun, x, myMesh) << std::endl;
+
+        if (count_fxsmall ==2){
+            //std::cout<< " f(x) : "<< f(Kstelsel,fstelsel, Ffun, x, myMesh)  << std::endl; // DIT GEEFT EEN ERROR
+            //std::cout<< " f(x0) : "<< f(Kstelsel,fstelsel, Ffun, x0, myMesh)  << std::endl;
+            /* Assertion `row>=0 && row<rows() && col>=0 && col<cols()' failed komt uit Eigen/src/SparseCore/SparseMatrix.h:208: */
+            return;
+        }
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;

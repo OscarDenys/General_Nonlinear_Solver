@@ -1,8 +1,8 @@
 %% simulation parameters (cf. table in assignement)
-% clear all; % close all; 
+clear all;  close all; 
 T_cel = 25;
-nu_u = 20.8 / 100;
-nu_v = 0.04 / 100;
+nu_u =  20.8/100;
+nu_v = 0.04/100;
 
 
 % model parameters
@@ -20,7 +20,7 @@ R_g = 8.314;
 % Maximum oxygen consumption rate:
 global T
 T = T_cel + 273.15;           % actual temperature in Kelvin
-T_ref = 293.15;               % reference temperature
+T_ref = 293.15;  % reference temperature
 V_mu = 2.39e-4 * exp( 80200/R_g * (1/T_ref - 1/T) );
 % Maximum fermentative carbon dioxide production rate:
 V_mfv = 1.61e-4 * exp( 56700/R_g * (1/T_ref - 1/T) );
@@ -42,7 +42,7 @@ C_vamb = p_atm * nu_v / (R_g * T);
 
 save('var.mat');
 vars = struct('V_mu',num2cell(V_mu),'K_mu',num2cell(K_mu),'K_mv',num2cell(K_mv),...
-    'r_q',num2cell(r_q),'V_mfv',num2cell(V_mfv),'K_mfu',num2cell(K_mfu));
+    'r_q',num2cell(r_q),'V_mfv',num2cell(V_mfv),'K_mfu',num2cell(K_mfu), 'R_g', num2cell(R_g), 'T', num2cell(T), 'p_atm', num2cell(p_atm));
 
 % generate mesh
 global model
@@ -100,11 +100,22 @@ a = 0.117644615194776;
 b = 61.175199901283264;
 
 % Get stiffness matrix K and constant term f:
-%[K, K_lin, f, f_lin] = create_stiffness(mesh, vars);
-[K, K_lin, f, f_lin] = create_stiffness_2(mesh);
+[K, K_lin, f, f_lin] = create_stiffness(mesh, vars);
+%[K, K_lin, f, f_lin] = create_stiffness_2(mesh);
 % f = [a*f(1:length(nodes)); b*f(length(nodes)+1:end)];
-% First solution: 
 
+
+% Third integral: 
+%[fu,Ku,fv,Kv] = third_integral(edge2Labels, mesh.Nodes(1,:), mesh.Nodes(2,:), T, nu_u, nu_v);
+% [fu;fv]-f is zero --> check
+% norm(K(1:length(fu), 1:length(fu))-Ku) is zero --> check
+% norm(K(length(fv)+1:end, length(fv)+1:end)-Kv) is zero --> check
+
+%C_0_u =( K(1:length(fu), 1:length(fu))+Ku) \ (fu - f_lin(1:length(fu)));
+%C_0_v = (K(length(fv)+1:end, length(fv)+1:end)+Kv )\ (fv - f_lin(length(fu)+1:end));
+%C_0 = [C_0_u; C_0_v]; 
+
+% First solution: 
 C_0 = (K+K_lin) \ -(f+f_lin);
 %C_0 = K\-(f+f_lin_gross);
 
@@ -128,7 +139,7 @@ CAMB = [C_uamb*ones(length(f)/2, 1); C_vamb*ones(length(f)/2, 1)];
 
 
 % Plot initial solution found by linearisation: 
-C_0_plot = C_0 ;%* R_g * T / p_atm;
+C_0_plot = 100*C_0 * R_g * T / p_atm;
 figure(1); clf;
 subplot(221); hold on;
 pdeplot(model,'XYData',C_0_plot(1:length(nodes)),'Contour','on','ColorMap','jet');
@@ -163,7 +174,7 @@ options = optimoptions('fsolve',...
 % J is jacobian at solution of solver...
 
 %% Plot result: 
-Cplot = C ;% * R_g * T / p_atm;
+Cplot = 100 * C * R_g * T / p_atm;
 figure(1); clf;
 subplot(221); hold on;
 pdeplot(model,'XYData',Cplot(1:length(nodes)),'Contour','on','ColorMap','jet');
@@ -274,7 +285,7 @@ function stop = outfun(C_, optimValues, stats)
     global model nodes
     figure(2); clf;
         global R_g T p_atm
-        Cplot = C_ * (R_g * T / p_atm);
+        Cplot = 100* C_ * (R_g * T / p_atm);
         
     
         subplot(121); hold on;

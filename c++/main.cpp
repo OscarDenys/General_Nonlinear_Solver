@@ -149,6 +149,21 @@ int main() {
     std::minimize_lm(myMesh, C_array, std::evaluateCostFunction, C0_array, Kmatrix, f_array);
 
     Eigen::VectorXd C_nonlin = C_array.matrix();
+/*
+    // print first 15 elements of C0 and C nonlin for comparison
+    std::cout<<"C nonlin : ";
+    for (int i = 0; i<15;i++){
+      std::cout<<C_nonlin[i]<<" ";
+    }
+    std::cout<<std::endl;
+
+    std::cout<<"C 0 : ";
+    for (int i = 0; i<15;i++){
+      std::cout<<C0[i]<<" ";
+    }
+    std::cout<<std::endl;
+*/
+    // write C nonlin to matlab file
     std::ofstream myFileNonLin;
     myFileNonLin.open("../matlab/cnonlin_output.m");
     myFileNonLin<<"C_nonlin = [ ";

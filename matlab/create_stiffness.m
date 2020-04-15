@@ -29,6 +29,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh, vars)
     stiffness_matrix_lin = zeros(2*nb_nodes, 2*nb_nodes);
     b = zeros(2*nb_nodes, 1);
     f_lin = zeros(2*nb_nodes, 1);
+
     for elem_index = 1:nb_elements_total  
 
         % For each element
@@ -69,7 +70,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh, vars)
         elem_stiff(3,1) = temp * (sigma_uz*(P3(1)-P2(1))*(P2(1)-P1(1)) - sigma_ur*(P2(2)-P3(2))*(P2(2)-P1(2)) );
         elem_stiff(3,2) = temp * (-sigma_uz*(P3(1)-P1(1))*(P2(1)-P1(1)) - sigma_ur*(P3(2)-P1(2))*(P2(2)-P1(2)) );
         elem_stiff(3,3) = temp * (sigma_uz*power(P2(1)-P1(1),2) + sigma_ur*power(P2(2)-P1(2),2) ) ; 
-
+        
         stiffness_matrix(n1,n1) = stiffness_matrix(n1,n1) + elem_stiff(1,1);
         stiffness_matrix(n1,n2) = stiffness_matrix(n1,n2) + elem_stiff(1,2);
         stiffness_matrix(n1,n3) = stiffness_matrix(n1,n3) + elem_stiff(1,3);
@@ -85,10 +86,10 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh, vars)
         % =====================   integraal 2 - lineair (5)
         % constant part
         [Ru, Rv] = evaluateR(C_uamb, C_vamb, vars); 
-        
-        A1 = det_jac/24* Ru *(2*P1(1) + P2(1) + P3(1));
-        A2 = det_jac/24* Ru *(P1(1) + 2*P2(1) + P3(1));
-        A3 = det_jac/24* Ru *(P1(1) + P2(1) + 2*P3(1));
+        factor = 24;
+        A1 = det_jac/factor* Ru *(2*P1(1) + P2(1) + P3(1));
+        A2 = det_jac/factor* Ru *(P1(1) + 2*P2(1) + P3(1));
+        A3 = det_jac/factor* Ru *(P1(1) + P2(1) + 2*P3(1));
        
         % Change in tryp (is just a try-out) seems to fix the problem of
         % negative solutions...
@@ -121,9 +122,9 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh, vars)
         
         % =====================   integraal 2 - lineair (6)
         % constant part
-        F1 = - det_jac/24* Rv * (2*P1(1) + P2(1) + P3(1));
-        F2 = - det_jac/24* Rv * (P1(1) + 2*P2(1) + P3(1));
-        F3 = - det_jac/24* Rv * (P1(1) + P2(1) + 2*P3(1));
+        F1 = - det_jac/factor* Rv * (2*P1(1) + P2(1) + P3(1));
+        F2 = - det_jac/factor* Rv * (P1(1) + 2*P2(1) + P3(1));
+        F3 = - det_jac/factor* Rv * (P1(1) + P2(1) + 2*P3(1));
         
         f_lin(n1_) = f_lin(n1_) + F1; % negatief vanwege vgl (6)
         f_lin(n2_) = f_lin(n2_) + F2;
@@ -152,8 +153,8 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh, vars)
         
 
         % =====================   integraal 1 - (6)
-        temp = (P1(1) + P2(1) + P3(1)) / 6 / det_jac;     
-
+        temp = tryp2*(P1(1) + P2(1) + P3(1)) / 6 / det_jac;     
+        
         % node 1 -> test phi_1
         elem_stiff(1,1) = temp * (sigma_vz*power(P3(1)-P2(1),2) + sigma_vr*power(P3(2)-P2(2),2) ) ;  
         elem_stiff(1,2) = temp * (-sigma_vz*(P3(1)-P2(1))*(P3(1)-P1(1)) + sigma_vr*(P2(2)-P3(2))*(P3(2)-P1(2)) ); 
@@ -168,7 +169,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh, vars)
         elem_stiff(3,1) = temp * (sigma_vz*(P3(1)-P2(1))*(P2(1)-P1(1)) - sigma_vr*(P2(2)-P3(2))*(P2(2)-P1(2)) );
         elem_stiff(3,2) = temp * (-sigma_vz*(P3(1)-P1(1))*(P2(1)-P1(1)) - sigma_vr*(P3(2)-P1(2))*(P2(2)-P1(2)) );
         elem_stiff(3,3) = temp * (sigma_vz*power(P2(1)-P1(1),2) + sigma_vr*power(P2(2)-P1(2),2) ) ; 
-
+        
         stiffness_matrix(n1_,n1_) = stiffness_matrix(n1_,n1_) + elem_stiff(1,1);
         stiffness_matrix(n1_,n2_) = stiffness_matrix(n1_,n2_) + elem_stiff(1,2);
         stiffness_matrix(n1_,n3_) = stiffness_matrix(n1_,n3_) + elem_stiff(1,3);
@@ -180,8 +181,10 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh, vars)
         stiffness_matrix(n3_,n3_) = stiffness_matrix(n3_,n3_) + elem_stiff(3,3);        
     end
 
-
+if true
     % Integral 3 of (5) and (6) - boundary conditions: 
+    
+    
     for a = 0:1
         C_amb = C_uamb;
         rho = rho_u;
@@ -223,6 +226,7 @@ function [K, K_lin, f, f_lin] = create_stiffness(mesh, vars)
              end
         end
     end
+end
     K = stiffness_matrix;
     K_lin = stiffness_matrix_lin;
     f = b;
