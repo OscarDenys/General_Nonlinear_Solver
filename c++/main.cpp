@@ -116,9 +116,10 @@ int main() {
 
     // Solve voor lin oplossing (startwaarde)
     // start: solve for C: (K+K_lin)C = -(f+f_lin)
+    Eigen::VectorXd newRHS = -(f+f_lin/100);
 
     Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
-    Eigen::VectorXd C0 = chol.solve(-f_lin);
+    Eigen::VectorXd C0 = chol.solve(newRHS);
 
     std::ofstream myFile;
     myFile.open("../matlab/cplusplus_output.m");
