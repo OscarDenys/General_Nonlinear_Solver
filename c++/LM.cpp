@@ -41,7 +41,7 @@ double line_search(arrayxd & trial_x, double (*fun)(spmat&, arrayxd&, void (*Ffu
     assert(gamma >= 0 && gamma <=1);
     assert(beta >= 0 && beta <=1);
 
-    int max_nb_steps_counter = 1000;
+    int max_nb_steps_counter = 1000; // originally 1000
 
     // initialize t, evaluate function
     double t = 1;
@@ -56,7 +56,11 @@ double line_search(arrayxd & trial_x, double (*fun)(spmat&, arrayxd&, void (*Ffu
 
         // throw error if line search takes too many iterations
         max_nb_steps_counter -= 1;
-        assert(max_nb_steps_counter > 0);
+        //assert(max_nb_steps_counter > 0);
+        if (max_nb_steps_counter == 0){
+            std::cout << "line_search: MAX NB STEPS EXCEEDED t = "<< t << std::endl;
+            return t;
+        }
     }
     return t;
 }
@@ -67,7 +71,7 @@ Finite difference approximation of the Jacobian.
 
 INPUT
 - Ffun: F(x) of which the Jacobian J(x0) is approximated
-- x0 (column vector)
+- x0 (column vector) this the position of the current iteration
 
 OUTPUT
 - f0 = F(x0) (column vector)
@@ -76,8 +80,9 @@ OUTPUT
 void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
         std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
 
+    //J.setZero();
     int Nx = x0.size();
-    (*Ffun)(Kstelsel, fstelsel, x0, f0, myMesh); // F0 = F(x0)
+    (*Ffun)(Kstelsel, fstelsel, x0, f0, myMesh); // f0 = F(x0)
 
     // perform finite difference jacobian evaluation
     double h = 1e-6; // stepsize for first order approximation // original 1e-6
@@ -93,12 +98,15 @@ void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, array
         Jcolj = (f-f0)*(1/h);
 
         for ( int i = 0; i < Jcolj.size(); i++){
-            if (Jcolj(i) != 0){
+            if (Jcolj(i) != 0 && !isnan(Jcolj(i))){
                 tripletList.push_back(Trip(i, j, Jcolj(i)));
             }
+            //if(isnan(Jcolj(i))){
+            //    std::cout<<"fin_diff_J: element is nan for i ="<< i <<" and j = "<< j << std::endl;
+            //}
         }
     }
-    J.setFromTriplets(tripletList.begin(), tripletList.end());
+    J.setFromTriplets(tripletList.begin(), tripletList.end()); // the initial content of J is destroyed.
 }
 
 
@@ -135,7 +143,7 @@ OUTPUT
 void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
     // convergence tolerance
-    double grad_tol = 1e-8; // original 1e-4 denk ik
+    double grad_tol = 1e-8; // original 1e-4 
     int max_iters = 200;
   
     arrayxd F(x0.size());
@@ -149,18 +157,19 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
 
     // line search parameters
     double gamma = 0.01; 
-    double beta = 0.6;
+    double beta = 0.8; // original 0.6
 
     // Levenberg-Marquardt: norm penalisation parameter lambda
     double lambda = 0.5; // lamda large causes the step to be more like gradient, lambda small causes the step to be more like Gauss-Newton
-    double lamdascaling = 0.8; 
+    double lamdascaling = 0.2; 
 
 
     // loop initialization
     x = x0;
     spmat J(Nf,Nx);
+    spmat A(Nx,Nx);
 
-    int count_fxsmall = 0;
+    //int count_fxsmall = 0;
 
     for (int k=1; k <= max_iters; k++){
 
@@ -181,16 +190,18 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         // check for convergence
         if (inf_norm_grad < grad_tol ){
             //x_iter = x_iter.block(0,0,Nx,k); // this gave segmentation fault
-            //grad_iter = grad_iter.head(k);
+            grad_iter = grad_iter.head(k);
             //std::cout<< "solution : "<< x  << std::endl;
             return;
         }
 
         // find the search direction pk 
 
-        spmat A = J.transpose() * J; 
-        for (int i; i < A.rows(); i++){
+        A = J.transpose() * J; 
+        for (int i=0; i < A.rows(); i++){
+            //std::cout<<"minimize_lm: A.coeffRef(i,i) ="<< A.coeffRef(i,i)<< std::endl;
             A.coeffRef(i,i) = A.coeffRef(i,i)  + lambda;
+           // std::cout<<"minimize_lm: A.coeffRef(i,i) ="<< A.coeffRef(i,i)<< std::endl;
         }
         
         A.makeCompressed();
@@ -202,43 +213,56 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         solverA.analyzePattern(A);
         solverA.factorize(A);
         if(solverA.info()!=Eigen::Success) {
-            std::cout << "minimize_lm: error in Eigen Sparse LU factorization" <<"\n";
+            std::cout << "minimize_lm: error in Eigen Sparse LU factorization" << std::endl;
         }
         vectxd pk = solverA.solve(-grad); 
         
         // line search: x = x_new
         double Jpk = grad.dot(pk); 
+        
 
-
+        if (k != 1) {
+            arrayxd xtrial = x;
+            double fxcurrent = f(Kstelsel,fstelsel, Ffun, x, myMesh);
+            double t = line_search(xtrial, f, Ffun, x, Jpk, pk, gamma, beta, myMesh,  Kstelsel, fstelsel);
+            double fxtrial = f(Kstelsel,fstelsel, Ffun, xtrial, myMesh);
         //if (k > 1) {
-            arrayxd xold = x;
-            double fxold = f(Kstelsel,fstelsel, Ffun, xold, myMesh);
-            line_search(x, f, Ffun, xold, Jpk, pk, gamma, beta, myMesh,  Kstelsel, fstelsel);
-            double fxnew = f(Kstelsel,fstelsel, Ffun, x, myMesh);
-        if (k > 1) {
-            if (fxnew < fxold){ // step accepted and lambda decreased to make the next step more like the Gauss Newton step (faster than gradient descent)
-                lambda = lambda * lamdascaling;
+            if (fxtrial < fxcurrent){ // && lambda > 0.3){ // step accepted and lambda decreased to make the next step more like the Gauss Newton step (faster than gradient descent)
+                x = xtrial;
+                if (lambda > 15){
+                    lambda = lambda * lamdascaling;
+                    }
+                std::cout<< "            fxcurrent = " << fxcurrent <<" fxtrial = "<<fxtrial << std::endl;
+                std::cout<<"UPDATE X"<< std::endl;
             }
-            else{ // step declined and lambda increased to make the next step more like the stable gradient descent step
+           // if (fxtrial == fxcurrent){
+            //    lambda = lambda / lamdascaling;
+            //}
+            else {//if (fxcurrent <= fxtrial) { // step declined and lambda increased to make the next step more like the stable gradient descent step
+                std::cout<< "            fxcurrent = " << fxcurrent <<" fxtrial = "<<fxtrial << std::endl;
+                //std::cout<<"LAMBDA INCREASE"<< std::endl;
                 lambda = lambda / lamdascaling;
-                x = xold;
             }
-
-            if (fxnew < 1e-16) {
+            /*if( isnan(fxcurrent)){
+                std::cout<< "            x current = " << x << std::endl;
+                std::cout<< "            x trial = " << xtrial << std::endl;
+                
+            }*/
+            /*if (fxtrial < 1e-16) {
                     std::cout<<"minimize_lm: fxnew smaller than 1e-16 counter ="<< count_fxsmall<< std::endl;
                     count_fxsmall = count_fxsmall + 1;
-            }
+            }*/
         }
 
         // print current log
-        std::cout<< "iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << f(Kstelsel,fstelsel, Ffun, x, myMesh) << std::endl;
+        std::cout<< "end of iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << f(Kstelsel,fstelsel, Ffun, x, myMesh) <<" norm step = "<< pk.norm() << " lambda = " << lambda << " x(1) = "<< x(1) << std::endl;
 
-        if (count_fxsmall ==2){
+        //if (count_fxsmall ==2){
             //std::cout<< " f(x) : "<< f(Kstelsel,fstelsel, Ffun, x, myMesh)  << std::endl; // DIT GEEFT EEN ERROR
             //std::cout<< " f(x0) : "<< f(Kstelsel,fstelsel, Ffun, x0, myMesh)  << std::endl;
             /* Assertion `row>=0 && row<rows() && col>=0 && col<cols()' failed komt uit Eigen/src/SparseCore/SparseMatrix.h:208: */
-            return;
-        }
+        //    return;
+        ///}
     }
     
     std::cout<<"minimize_lm: MAX_NB_ITERATIONS exceeded"<< std::endl;
