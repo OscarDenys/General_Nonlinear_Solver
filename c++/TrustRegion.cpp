@@ -6,6 +6,11 @@
 #include <iostream>
 #include "mesh.hpp"
 
+// TODO
+// update make file
+// make hpp file (check first if first draft is finished)
+// test and debug ---> print output after iteration
+
 
 typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> Trip;
@@ -154,8 +159,6 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     // F = F(x0)
     arrayxd F(x0.size());
     (*Ffun)(Kstelsel, fstelsel,x0, F, myMesh);
-    int Nx = x0.size();
-    int Nf = F.size();
 
     // a log of the iterations
     //matxd x_iter(Nx, max_iters);
@@ -163,6 +166,8 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
 
     // loop initialization
     x = x0;
+    int Nx = x0.size();
+    int Nf = F.size();
     spmat J(Nf,Nx);
     spmat A(Nx,Nx);
     double stepRadius = 1;
