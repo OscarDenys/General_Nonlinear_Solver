@@ -66,7 +66,7 @@ C_amb_vect = [C_uamb*ones(length(nodes),1);C_vamb*ones(length(nodes),1)];
 f_lin = eval_nonlinear(mesh, C_amb_vect, vars); 
 
 % First solution: 
-C_0 = (K) \ -(f+0.85*f_lin);
+C_0 = (K) \ -(f+f_lin);
 
 %% gen ManSol
 
