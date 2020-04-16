@@ -49,7 +49,7 @@ double line_search(arrayxd & trial_x, double (*fun)(spmat&, arrayxd&, void (*Ffu
 
     trial_x = x0 + t*pk; 
 
-    while ( (*fun)(Kstelsel,fstelsel, Ffun, trial_x, myMesh) > f0 + gamma*t*Jpk ){
+    while ( (*fun)(Kstelsel,fstelsel, Ffun, trial_x, myMesh)*1e-4 > f0*1e-4 + gamma*t*Jpk ){
         // trial step in x
         t = beta*t;
         trial_x = x0 + t*pk;
@@ -123,7 +123,7 @@ double f(spmat & Kstelsel, arrayxd& fstelsel, void (*Ffun)(spmat &, arrayxd &, a
     arrayxd F(x.size());
     (*Ffun)(Kstelsel, fstelsel,x, F, myMesh);
     double f = 0.5*(F.cwiseProduct(F).sum()); // dit is OK
-    return f;
+    return f*1e4;
 }
 
 
@@ -160,7 +160,7 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     double beta = 0.8; // original 0.6
 
     // Levenberg-Marquardt: norm penalisation parameter lambda
-    double lambda = 0.5; // lamda large causes the step to be more like gradient, lambda small causes the step to be more like Gauss-Newton
+    double lambda = 300;//0.5; // lamda large causes the step to be more like gradient, lambda small causes the step to be more like Gauss-Newton
     double lamdascaling = 0.2; 
 
 
@@ -219,7 +219,7 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         
         // line search: x = x_new
         double Jpk = grad.dot(pk); 
-        
+       // line_search(x, f, Ffun, x, Jpk, pk, gamma, beta, myMesh,  Kstelsel, fstelsel);
 
         if (k != 1) {
             arrayxd xtrial = x;
@@ -243,16 +243,19 @@ void minimize_lm(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
                 //std::cout<<"LAMBDA INCREASE"<< std::endl;
                 lambda = lambda / lamdascaling;
             }
-            /*if( isnan(fxcurrent)){
-                std::cout<< "            x current = " << x << std::endl;
-                std::cout<< "            x trial = " << xtrial << std::endl;
-                
-            }*/
-            /*if (fxtrial < 1e-16) {
-                    std::cout<<"minimize_lm: fxnew smaller than 1e-16 counter ="<< count_fxsmall<< std::endl;
-                    count_fxsmall = count_fxsmall + 1;
-            }*/
+
+            //if( isnan(fxcurrent)){
+            //    std::cout<< "            x current = " << x << std::endl;
+            //    std::cout<< "            x trial = " << xtrial << std::endl;
+            //    
+            //}
+            //if (fxtrial < 1e-16) {
+            //        std::cout<<"minimize_lm: fxnew smaller than 1e-16 counter ="<< count_fxsmall<< std::endl;
+            //        count_fxsmall = count_fxsmall + 1;
+            //}
+    
         }
+        
 
         // print current log
         std::cout<< "end of iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << f(Kstelsel,fstelsel, Ffun, x, myMesh) <<" norm step = "<< pk.norm() << " lambda = " << lambda << " x(1) = "<< x(1) << std::endl;
