@@ -85,63 +85,6 @@ double f(spmat & Kstelsel, arrayxd& fstelsel, void (*Ffun)(spmat &, arrayxd &, a
 
 
 
-/*
-double compute_pk( vectxd & pk, double stepRadius , void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x, std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
-
-    // regularization parameter
-    double lambda = 0.5;
-  
-    arrayxd F(x0.size());
-    (*Ffun)(Kstelsel, fstelsel,x0, F, myMesh);
-    int Nx = x0.size();
-    int Nf = F.size();
-
-    // loop initialization [DIT MOET NOG UIT DEZE FUNCTIE] --> J en A als argumenten
-   spmat J(Nf,Nx);
-   spmat A(Nx,Nx);
-
-    // evaluate F and it's jacobian J in x
-    finite_difference_jacob(F, J, Ffun, x, myMesh, Kstelsel, fstelsel);
-
-    vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x)
-
-
-    // compute step pk  
-    A = J.transpose() * J; 
-    for (int i=0; i < A.rows(); i++){
-        //std::cout<<"minimize_lm: A.coeffRef(i,i) ="<< A.coeffRef(i,i)<< std::endl;
-        A.coeffRef(i,i) = A.coeffRef(i,i)*(1+lambda);
-        // std::cout<<"minimize_lm: A.coeffRef(i,i) ="<< A.coeffRef(i,i)<< std::endl;
-    }
-    A.makeCompressed();
-    //Sparse LU solver: 
-        // A*pk = b 
-        //  A = J'J + lambda * diag(J'J)    (Fletcher)   // bij normale LM is de Hessian A = J'J + lambda * I                
-        //  b = -grad;
-    Eigen::SparseLU<Eigen::SparseMatrix<double> > solverA;
-    solverA.analyzePattern(A);
-    solverA.factorize(A);
-    if(solverA.info()!=Eigen::Success) {
-        std::cout << "compute_pk: error in Eigen Sparse LU factorization" << std::endl;
-    }
-    pk = solverA.solve(-grad); 
-    
-    
-    double stepNorm = pk.norm();
-    if (stepNorm > stepRadius){
-        pk *= (stepRadius/stepNorm);
-    }
-    
-    // x is in array and pk in vector, this should be fixed
-    arrayxd xnext = x + pk.array();
-
-    // trustiworthiness = actual reduction / predicted reduction
-    double Ared = f(Kstelsel,fstelsel, Ffun, x, myMesh) - f(Kstelsel,fstelsel, Ffun, xnext, myMesh);
-    double Pred = -( grad.dot(pk) + 0.5* pk*A*pk);
-    double trustworthiness = Ared/Pred;
-    return trustworthiness;
-}*/
-
 
 void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
@@ -172,7 +115,13 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     spmat A(Nx,Nx);
     double stepRadius = 1;
 
-
+    //test objective function
+    arrayxd xtest(x0.size());
+    std::cout << "f(x0)= " << f(Kstelsel,fstelsel, Ffun, x0, myMesh) << std::endl;
+    std::cout << "f(x = 0 )= " << f(Kstelsel,fstelsel, Ffun, xtest, myMesh) << std::endl;
+    xtest = 1;
+    std::cout << "f(x = 1 )= " << f(Kstelsel,fstelsel, Ffun, xtest, myMesh) << std::endl;
+    double nanElem = 0;
 
     for (int k=1; k <= max_iters; k++){
 
@@ -183,7 +132,7 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         finite_difference_jacob(F, J, Ffun, x, myMesh, Kstelsel, fstelsel);
 
         //convergence criteria
-        vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x)
+        vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x) // bring initialisation out of loop
         double inf_norm_grad = grad.cwiseAbs().maxCoeff();
 
         // store inf_norm_grad in iteration log
@@ -211,9 +160,9 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         solverA.analyzePattern(A);
         solverA.factorize(A);
         if(solverA.info()!=Eigen::Success) {
-            std::cout << "compute_pk: error in Eigen Sparse LU factorization" << std::endl;
+            std::cout << "trustRegion: error in Eigen Sparse LU factorization" << std::endl;
         }
-        vectxd pk = solverA.solve(-grad); 
+        vectxd pk = solverA.solve(-grad); // bring initialisation out of loop
 
         // check if pk is smaller then stepRadius
         double stepNorm = pk.norm();
@@ -221,13 +170,31 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
             pk *= (stepRadius/stepNorm);
         }
         // x is in array and pk in vector, this should be fixed
-        arrayxd xnext = x + pk.array();
+        arrayxd xnext = x + pk.array(); // bring initialisation out of loop
 
     // COMPUTE TRUSTWORTHINESS______________________________________________________________________________________
         // trustworthiness = rho_k = actual reduction / predicted reduction
-        double Ared = f(Kstelsel,fstelsel, Ffun, x, myMesh) - f(Kstelsel,fstelsel, Ffun, xnext, myMesh);
+        double fx = f(Kstelsel,fstelsel, Ffun, x, myMesh); //misschien helpt dit tegen nan
+        double fxnext = f(Kstelsel,fstelsel, Ffun, xnext, myMesh); 
+        double Ared = fx - fxnext;
         double Pred = -( grad.dot(pk) + 0.5* pk.dot(A*pk) );
         double rhok = Ared/Pred;
+
+        if (isnan(fx)){
+            nanElem = 0;
+            for (int i = 0; i < x.size(); i++){
+                if ( isnan(x(i)) ){
+                    nanElem += 1;
+                }
+            }
+             std::cout << "              f(x) is nan..             number of nan elements in x = " << nanElem << std::endl;
+                    //if (nanElem > 0){
+                    //    std::cout << "       f(x) is nan..             number of nan elements in x = " << nanElem << std::endl;
+                    //}
+                    //else{
+                    //    std::cout << "       f(x) is nan..              zero nan elements in x" << std::endl;
+                    //}
+        }
 
     // ADAPT stepRadius FOR NEXT ITERATION___________________________________________________________________________
         if (rhok < 0.25){ // bad model, reduce radius
@@ -240,16 +207,16 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     // DECIDE ON ACCEPTANCE OF STEP___________________________________________________________________________
         if ( rhok > eita){
             x = xnext;
-            std::cout<<" X UPDATE"<< std::endl;
+            std::cout<<"          ...UPDATING X...   " << std::endl;
         }
 
         // travelled distance from xo
-        vectxd difference = (x0-x).matrix();
+        vectxd difference = (x0-x).matrix(); // bring initialisation out of loop
         double distance = difference.norm();
         
 
         // print current log
-       std::cout<< "end of iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << f(Kstelsel,fstelsel, Ffun, x, myMesh) <<" norm step = "<< pk.norm()<< " rho = "<< rhok << " Ared = "<< Ared << " Pred = "<<Pred << " distance = "<< distance << std::endl;
+       std::cout<< "end of iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << fx <<" norm step = "<< pk.norm()<< " rho = "<< rhok << " Ared = "<< Ared << " Pred = "<<Pred << " distance = "<< distance << std::endl;
 
     }
     

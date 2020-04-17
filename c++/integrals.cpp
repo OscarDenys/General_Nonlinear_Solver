@@ -363,7 +363,6 @@ namespace std {
     void evaluateCostFunction( Eigen::SparseMatrix<double> &K, Eigen::ArrayXd &f, Eigen::ArrayXd &C, Eigen::ArrayXd &F, mesh &myMesh){
         Eigen::VectorXd Kc = K * C.matrix();
         F = Kc.array() + f + integral2nonlinear(C, myMesh);
-
     }
 
 } // namespace std
