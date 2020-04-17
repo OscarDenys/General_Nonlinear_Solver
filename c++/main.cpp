@@ -6,7 +6,7 @@
 #include "integrals.hpp"
 #include "Eigen/SparseCore"
 #include "Eigen/SparseCholesky"
-#include "LM.hpp"
+#include "TrustRegion.hpp"
 
 
 using namespace std;
@@ -147,7 +147,7 @@ int main() {
     Eigen::ArrayXd C_array(2*M);
     
 
-    std::minimize_lm(myMesh, C_array, std::evaluateCostFunction, C0_array, Kmatrix, f_array);
+    std::trustRegion(myMesh, C_array, std::evaluateCostFunction, C0_array, Kmatrix, f_array);
 
     Eigen::VectorXd C_nonlin = C_array.matrix();
 /*

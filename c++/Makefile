@@ -34,8 +34,8 @@ mesh.o: mesh.cpp integrals.o $(EXAMPLE_DEPS)
 	 @$(CXX) -c $(CXXFLAGS) $(DEBUGFLAGS) mesh.cpp
 main.o: main.cpp mesh.o integrals.o $(EXAMPLE_DEPS)
 	 @$(CXX) -c $(CXXFLAGS) $(DEBUGFLAGS) main.cpp
-LM.o: LM.cpp mesh.o $(EXAMPLE_DEPS)
-	 @$(CXX) -c $(CXXFLAGS) $(DEBUGFLAGS) LM.cpp
+TrustRegion.o: TrustRegion.cpp mesh.o $(EXAMPLE_DEPS)
+	 @$(CXX) -c $(CXXFLAGS) $(DEBUGFLAGS) TrustRegion.cpp
 
-main: main.o mesh.o integrals.o LM.o
-	 @$(CXX) -o main $(LDFLAGS) $(CXXFLAGS) main.o mesh.o integrals.o LM.o $(LIBS)
+main: main.o mesh.o integrals.o TrustRegion.o
+	 @$(CXX) -o main $(LDFLAGS) $(CXXFLAGS) main.o mesh.o integrals.o TrustRegion.o $(LIBS)
