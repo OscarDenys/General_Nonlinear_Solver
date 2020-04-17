@@ -33,6 +33,7 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
+/*
 void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
         std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
 
@@ -52,6 +53,43 @@ void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, array
         x(j) += h;
         (*Ffun)(Kstelsel, fstelsel, x, f, myMesh);
         Jcolj = (f-f0)*(1/h);
+
+        for ( int i = 0; i < Jcolj.size(); i++){
+            if (Jcolj(i) != 0 && !isnan(Jcolj(i))){
+                tripletList.push_back(Trip(i, j, Jcolj(i)));
+            }
+            //if(isnan(Jcolj(i))){
+            //    std::cout<<"fin_diff_J: element is nan for i ="<< i <<" and j = "<< j << std::endl;
+            //}
+        }
+    }
+    J.setFromTriplets(tripletList.begin(), tripletList.end()); // the initial content of J is destroyed.
+}*/
+// CENTRAL FINITE DIFFERENCE
+void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
+        std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
+
+    //J.setZero();
+    int Nx = x0.size();
+    (*Ffun)(Kstelsel, fstelsel, x0, f0, myMesh); // f0 = F(x0)
+
+    // perform finite difference jacobian evaluation
+    double h = 1e-6; // stepsize for first order approximation // original 1e-6
+    double per2h = 1/(2*h);
+    std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
+
+    arrayxd fplush(x0.size());
+    arrayxd fminh(x0.size());
+    arrayxd Jcolj(x0.size());
+
+    for (int j = 0; j < Nx; j++){
+        arrayxd xplush = x0; //x0 argument zou in principe reference (&) mogen zijn
+        arrayxd xminh = x0;
+        xplush(j) += h;
+        xminh(j) -= h;
+        (*Ffun)(Kstelsel, fstelsel, xplush, fplush, myMesh);
+        (*Ffun)(Kstelsel, fstelsel, xminh, fminh, myMesh);
+        Jcolj = (fplush-fminh)*per2h;
 
         for ( int i = 0; i < Jcolj.size(); i++){
             if (Jcolj(i) != 0 && !isnan(Jcolj(i))){
@@ -89,7 +127,7 @@ double f(spmat & Kstelsel, arrayxd& fstelsel, void (*Ffun)(spmat &, arrayxd &, a
 void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
     // convergence tolerance
-    double grad_tol = 1e-8; // original 1e-4 
+    double grad_tol = 1e-20; // original 1e-4 
     int max_iters = 200;
 
     // regularization parameter
