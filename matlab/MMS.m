@@ -62,33 +62,39 @@ nodes = p;
 
 [K_1, K_3, f, ~] = create_stiffness(mesh, vars);
 K = K_1+K_3;
-C_amb_vect = [C_uamb*ones(length(nodes),1);C_vamb*ones(length(nodes),1)];
+C_amb_vect = [C_uamb*ones(length(nodes),1); C_vamb*ones(length(nodes),1)];
 f_lin = eval_nonlinear(mesh, C_amb_vect, vars); 
 
 % First solution: 
 C_0 = (K) \ -(f+f_lin);
 
-%% gen ManSol
+% gen ManSol
 
 C_man = zeros(2*M, 1);
 for i = 1:M
     R_sq = p(1,i)^2 + p(2,i)^2;
-    C_man(i) = C_uamb * (-R_sq + 2*sqrt(R_sq));
-    C_man(i+M) = C_vamb * (-R_sq + 2*sqrt(R_sq));
+    A_u = rho_u*C_uamb / (2*sigma_ur+rho_u);
+    A_v = rho_v*C_vamb / (2*sigma_vr+rho_v);
+    C_man(i) = A_u * R_sq;
+    C_man(i+M) = A_v * R_sq;
 end
 
+Cplot = real(log( C_0 - C_man));
 Cplot = C_0 - C_man;
+% Cplot = (C_man) ./ C_0;
 
 norm(Cplot(1:length(p)))
+max(Cplot(1:length(p)))
 norm(Cplot(length(p)+1:end))
-figure(10);
+max(Cplot(length(p)+1:end))
+figure(9);
 
-subplot(321); scatter3(p(1,:), p(2,:), C_0(1:length(p))); title('C_0');
-subplot(322); scatter3(p(1,:), p(2,:), C_0(length(p)+1:end));
-subplot(323); scatter3(p(1,:), p(2,:), C_man(1:length(p))); title('manufactured');
-subplot(324); scatter3(p(1,:), p(2,:), C_man(length(p)+1:end));
-subplot(325); scatter3(p(1,:), p(2,:), Cplot(1:length(p))); title('C_0 - C_{man}');
-subplot(326); scatter3(p(1,:), p(2,:), Cplot(length(p)+1:end));
+subplot(321); pdeplot(p, e, t, 'XYData', C_0(1:length(p)),'Contour','on','ColorMap','jet'); title('C_0');
+subplot(322); pdeplot(p, e, t, 'XYData', C_0(length(p)+1:end),'Contour','on','ColorMap','jet');
+subplot(323); pdeplot(p, e, t, 'XYData', C_man(1:length(p)),'Contour','on','ColorMap','jet'); title('manufactured');
+subplot(324); pdeplot(p, e, t, 'XYData', C_man(length(p)+1:end),'Contour','on','ColorMap','jet');
+subplot(325); pdeplot(p, e, t, 'XYData', Cplot(1:length(p)),'Contour','on','ColorMap','jet'); title('C_0 - C_{man}');
+subplot(326); pdeplot(p, e, t, 'XYData', Cplot(length(p)+1:end),'Contour','on','ColorMap','jet');
 
 %%
 norm(K*C_man + f + eval_nonlinear(mesh, C_man, vars))
