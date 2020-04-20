@@ -132,15 +132,17 @@ double f(spmat & Kstelsel, arrayxd& fstelsel, void (*Ffun)(spmat &, arrayxd &, a
 void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
     // convergence tolerance
-    double grad_tol = 1e-20; // original 1e-4 
+    double grad_tol = 1e-17; // original 1e-4 
     int max_iters = 200;
 
     // regularization parameter
     double lambda = 0.5;
+    double lambdascaling = 0.3;
+    double lambdaMin = 1e-16;
 
     // trust region parameters
-    double MAX_Radius = 30;
-    double eita = 0.01; // decide on acceptance of step (between 0 and 1/4) step accepted if rho_k > eita
+    double MAX_Radius = 25;
+    double eita = 0.2; // decide on acceptance of step (between 0 and 1/4) step accepted if rho_k > eita
   
     // F = F(x0)
     arrayxd F(x0.size());
@@ -169,11 +171,19 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     double nanElem = 0;
     bool stepNormLimitReached = false;
 
+
+
+    // START ITERATING______________________________________________________________________________________________________________________________________________
     for (int k=1; k <= max_iters; k++){
+
         stepNormLimitReached = false;
 
         // check for divergence
-        assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // equivalent: x.cwiseAbs().maxCoeff() < 1e6
+        //assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // equivalent: x.cwiseAbs().maxCoeff() < 1e6 // dit geeft assertion error 
+        if (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6){                                                         // dit geeft geen print HOEZO 
+            std::cout << "divergence x "<< x.cwiseAbs().maxCoeff()<< std::endl;
+            return;
+        }
 
         // evaluate F(x) and it's jacobian J(x)
         finite_difference_jacob(F, J, Ffun, x, myMesh, Kstelsel, fstelsel);
@@ -226,7 +236,7 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         double fx = f(Kstelsel,fstelsel, Ffun, x, myMesh); //misschien helpt dit tegen nan
         double fxnext = f(Kstelsel,fstelsel, Ffun, xnext, myMesh); 
         double Ared = fx - fxnext; // actual reduction
-        double Pred = -( grad.dot(pk) + 0.5* pk.dot(A*pk) ); // predicted reduction
+        double Pred = -( grad.dot(pk) + 0.5* pk.dot(A*pk) )*1e4; // predicted reduction
         double rhok = Ared/Pred;
 
         if (isnan(fx)){
@@ -260,6 +270,13 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
            // std::cout<<"          ...UPDATING X...   " << std::endl;
         }
 
+        if ( abs(rhok-1) < 0.2 ){
+                lambda = min(lambda *lambdascaling, lambdaMin); 
+        }
+        else if (abs(rhok-1) > 10){
+                lambda = lambda/ lambdascaling; 
+        }
+
         // travelled distance from xo
         vectxd difference = (x0-x).matrix(); // bring initialisation out of loop
         double distance = difference.norm();
@@ -267,7 +284,7 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
 
         // print current log  // " Ared = "<< Ared << " Pred = "<< Pred <<
        //std::cout<< "end of iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << fx <<" norm step = "<< pk.norm()<< " rho = "<< rhok <<  " travelled distance = "<< distance << "  Trust region radius = " << stepRadius << std::endl;
-       std::cout<< "        rho = "<< rhok <<  " Ared = "<< Ared << " Pred = "<< Pred << "  Trust region radius = " << stepRadius << std::endl;
+       std::cout<< "        rho = "<< rhok <<  " Ared = "<< Ared << " Pred = "<< Pred << "  Trust region radius = " << stepRadius<< " lambda = "<< lambda << std::endl;
        std::cout<< "end of iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << fx <<" norm step = "<< pk.norm() <<  " travelled distance = "<< distance << std::endl;
     }
     
