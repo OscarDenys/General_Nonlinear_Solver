@@ -155,7 +155,7 @@ namespace std {
     } // integral2lin()
 
     Eigen::ArrayXd integral2nonlinear(Eigen::ArrayXd &C, std::mesh &myMesh) {
-        Eigen::ArrayXd H(C.size()); // todo: vanzelf zero? 
+        Eigen::ArrayXd H = Eigen::ArrayXd::Zero(C.size()); 
         double Ru12, Ru13, Ru23;
         double Rv12, Rv13, Rv23;
         int M = myMesh.getNbNodes();
@@ -364,5 +364,45 @@ namespace std {
         Eigen::VectorXd Kc = K * C.matrix();
         F = Kc.array() + f + integral2nonlinear(C, myMesh);
     }
+        /*
+        Eigen::ArrayXd Kcarray = Kc.array();
+        Eigen::ArrayXd nonlin = integral2nonlinear(C, myMesh);
+
+        int Kcnancount = 0;
+        int fnancount = 0;
+        int nonlinnancount = 0;
+
+        for ( int i = 0; i < Kcarray.size(); i++){
+            if(isnan(Kcarray(i))){
+                Kcnancount +=1;
+            }
+        }
+        if (Kcnancount > 0){
+            std::cout<<" Kcnancount  = "<<Kcnancount << std::endl;
+        }
+
+
+        for ( int i = 0; i < f.size(); i++){
+            if(isnan(f(i))){
+                fnancount +=1;
+            }
+        }
+        if (fnancount > 0){
+            std::cout<<" fnancount  = "<<fnancount << std::endl;
+        }
+
+        for ( int i = 0; i < nonlin.size(); i++){
+            if(isnan(nonlin(i))){
+                nonlinnancount +=1;
+            }
+        }
+        if (nonlinnancount > 0){
+            std::cout<<" nonlinnancount  = "<<nonlinnancount << std::endl;
+        }
+
+
+        F = Kcarray + f + nonlin;
+        
+    }*/
 
 } // namespace std
