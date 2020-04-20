@@ -179,11 +179,11 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         stepNormLimitReached = false;
 
         // check for divergence
-        //assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // equivalent: x.cwiseAbs().maxCoeff() < 1e6 // dit geeft assertion error 
-        if (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6){                                                         // dit geeft geen print HOEZO 
-            std::cout << "divergence x "<< x.cwiseAbs().maxCoeff()<< std::endl;
-            return;
-        }
+        assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // equivalent: x.cwiseAbs().maxCoeff() < 1e6 // dit geeft assertion error 
+        //if (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6){                                                         // conditional moet nog negatief gezet worden
+       //     std::cout << "divergence x "<< x.cwiseAbs().maxCoeff()<< std::endl;
+         //   return;
+        //}
 
         // evaluate F(x) and it's jacobian J(x)
         finite_difference_jacob(F, J, Ffun, x, myMesh, Kstelsel, fstelsel);
