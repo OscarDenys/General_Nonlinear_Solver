@@ -33,7 +33,6 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
-/*
 void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
         std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
 
@@ -64,7 +63,8 @@ void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, array
         }
     }
     J.setFromTriplets(tripletList.begin(), tripletList.end()); // the initial content of J is destroyed.
-}*/
+}
+/*
 // CENTRAL FINITE DIFFERENCE
 void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
         std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
@@ -101,7 +101,7 @@ void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, array
         }
     }
     J.setFromTriplets(tripletList.begin(), tripletList.end()); // the initial content of J is destroyed.
-}
+}*/
 
 
 /*
