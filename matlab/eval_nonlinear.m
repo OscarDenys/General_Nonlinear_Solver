@@ -25,14 +25,14 @@ function [b] = eval_nonlinear(mesh, C, vars)
         dz_dksi = P2(2) - P1(2);
         Jac = [[dr_dy, dr_dksi];[dz_dy, dz_dksi]];
         det_jac = abs(det(Jac)) ;
-%         
-%         [resp12u, resp12v] = evaluateR((C(n1)+C(n2))/2,(C(n1+M)+C(n2+M))/2,vars);
-%         [resp13u, resp13v] = evaluateR((C(n1)+C(n3))/2,(C(n1+M)+C(n3+M))/2,vars);
-%         [resp23u, resp23v] = evaluateR((C(n2)+C(n3))/2,(C(n2+M)+C(n3+M))/2,vars);
+        
+        [resp12u, resp12v] = evaluateR((C(n1)+C(n2))/2,(C(n1+M)+C(n2+M))/2,vars);
+        [resp13u, resp13v] = evaluateR((C(n1)+C(n3))/2,(C(n1+M)+C(n3+M))/2,vars);
+        [resp23u, resp23v] = evaluateR((C(n2)+C(n3))/2,(C(n2+M)+C(n3+M))/2,vars);
 
-        [resp12u, resp12v] = evaluateR_MMS((P1(1)+P2(1))/2,(P1(2)+P2(2))/2,vars);
-        [resp13u, resp13v] = evaluateR_MMS((P1(1)+P3(1))/2,(P1(2)+P3(2))/2,vars);
-        [resp23u, resp23v] = evaluateR_MMS((P2(1)+P3(1))/2,(P2(2)+P3(2))/2,vars);
+%         [resp12u, resp12v] = evaluateR_MMS((P1(1)+P2(1))/2,(P1(2)+P2(2))/2,vars);
+%         [resp13u, resp13v] = evaluateR_MMS((P1(1)+P3(1))/2,(P1(2)+P3(2))/2,vars);
+%         [resp23u, resp23v] = evaluateR_MMS((P2(1)+P3(1))/2,(P2(2)+P3(2))/2,vars);
 
         % =====================   integraal 2 - lineair (5)
         factor = 24;
