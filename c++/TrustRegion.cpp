@@ -132,7 +132,7 @@ double f(spmat & Kstelsel, arrayxd& fstelsel, void (*Ffun)(spmat &, arrayxd &, a
 void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
     // convergence tolerance
-    double grad_tol = 1e-17; // original 1e-4 
+    double grad_tol = 2e-20; // original 1e-4 
     int max_iters = 200;
 
     // regularization parameter
@@ -175,16 +175,12 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
 
     // START ITERATING______________________________________________________________________________________________________________________________________________
     for (int k=1; k <= max_iters; k++){
-
+    
         stepNormLimitReached = false;
 
         // check for divergence
-        assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // equivalent: x.cwiseAbs().maxCoeff() < 1e6 // dit geeft assertion error 
-        //if (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6){                                                         // conditional moet nog negatief gezet worden
-       //     std::cout << "divergence x "<< x.cwiseAbs().maxCoeff()<< std::endl;
-         //   return;
-        //}
-
+        assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // equivalent: x.cwiseAbs().maxCoeff() < 1e6 
+        
         // evaluate F(x) and it's jacobian J(x)
         finite_difference_jacob(F, J, Ffun, x, myMesh, Kstelsel, fstelsel);
 
@@ -271,7 +267,7 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         }
 
         if ( abs(rhok-1) < 0.2 ){
-                lambda = min(lambda *lambdascaling, lambdaMin); 
+                lambda = max(lambda *lambdascaling, lambdaMin); 
         }
         else if (abs(rhok-1) > 10){
                 lambda = lambda/ lambdascaling; 
