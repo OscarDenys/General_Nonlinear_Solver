@@ -8,7 +8,7 @@ OBJS    := $(SOURCES:.cpp=.o) $(SOURCES:.cpp=_d.o) $(SOURCES:.cpp=_p.o)
 DEBUGFLAGS:= -g3
 RELEASEFLAGS:= -O0 -DNDEBUG
 PARALLELFLAGS:= -D_GLIBCXX_PARALLEL -fopenmp -pthread
-CXXFLAGS := -Wall -std=c++17
+CXXFLAGS := -Wall -std=c++17 -fsanitize=address -fstack-protector
 LDFLAGS  :=
 LIBS =   -lstdc++
 OPENMPLIB =-L/usr/lib -fopenmp -pthread
