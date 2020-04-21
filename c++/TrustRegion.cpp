@@ -184,6 +184,22 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         // evaluate F(x) and it's jacobian J(x)
         finite_difference_jacob(F, J, Ffun, x, myMesh, Kstelsel, fstelsel);
 
+        if (k == 1){
+            // write J to matlab file
+            matxd Jdense = matxd(J);
+            std::ofstream myFileJac;
+            myFileJac.open("../matlab/jacobian.m");
+            myFileJac<<"Jdense = [ ";
+            for (int i = 0; i<Jdense.rows();i++){
+                for (int j = 0; j<Jdense.cols();j++){
+                    myFileJac<<Jdense(i,j)<<" ";
+                }
+            }
+            myFileJac<<"];";
+            myFileJac.close();
+            std::cout<<std::endl;
+        }
+
         //convergence criteria
         vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x) // bring initialisation out of loop
         double inf_norm_grad = grad.cwiseAbs().maxCoeff();

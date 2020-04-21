@@ -127,7 +127,7 @@ int main() {
     for (int i = 0; i<C0.size();i++){
       myFile<<C0[i]<<" ";
     }
-    myFile<<"]';";
+    myFile<<"];";
     myFile.close();
     std::cout<<std::endl;
 
@@ -171,7 +171,7 @@ int main() {
     for (int i = 0; i<C_nonlin.size();i++){
       myFileNonLin<<C_nonlin[i]<<" ";
     }
-    myFileNonLin<<"]';";
+    myFileNonLin<<"];";
     myFileNonLin.close();
     std::cout<<std::endl;
 
