@@ -136,9 +136,9 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     int max_iters = 200;
 
     // regularization parameter
-    double lambda = 0.5;
-    double lambdascaling = 0.3;
-    double lambdaMin = 1e-16;
+    double lambda =1e-16;// 0.5;
+    //double lambdascaling = 0.3;
+   // double lambdaMin = 1e-16;
 
     // trust region parameters
     double MAX_Radius = 25;
@@ -282,12 +282,12 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
            // std::cout<<"          ...UPDATING X...   " << std::endl;
         }
 
-        if ( abs(rhok-1) < 0.02 ){
+       /* if ( abs(rhok-1) < 0.02 ){
                 lambda = max(lambda *lambdascaling, lambdaMin); 
         }
         else if (abs(rhok-1) > 0.1){
                 lambda = lambda/ lambdascaling; 
-        }
+        }*/
 
         // travelled distance from xo
         vectxd difference = (x0-x).matrix(); // bring initialisation out of loop
