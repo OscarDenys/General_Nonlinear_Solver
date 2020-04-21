@@ -282,10 +282,10 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
            // std::cout<<"          ...UPDATING X...   " << std::endl;
         }
 
-        if ( abs(rhok-1) < 0.2 ){
+        if ( abs(rhok-1) < 0.02 ){
                 lambda = max(lambda *lambdascaling, lambdaMin); 
         }
-        else if (abs(rhok-1) > 10){
+        else if (abs(rhok-1) > 0.1){
                 lambda = lambda/ lambdascaling; 
         }
 
