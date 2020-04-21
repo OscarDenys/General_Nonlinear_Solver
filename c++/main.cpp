@@ -117,9 +117,22 @@ int main() {
 
     // solve for C: (K)C = -(f+f_lin)
     Eigen::VectorXd newRHS = -(f+f_lin/100);
-    Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
-    Eigen::VectorXd C0 = chol.solve(newRHS);
-    // Write result to matlab output file: 
+
+    //Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
+    //Eigen::VectorXd C0 = chol.solve(newRHS);
+
+    Eigen::SparseLU<Eigen::SparseMatrix<double> > solver;
+    solver.analyzePattern(KLinMatrix);
+    solver.factorize(KLinMatrix);
+    if(solver.info()!=Eigen::Success) {
+        std::cout << "main: error in Eigen Sparse LU factorization KLinMatrix" << std::endl;
+    }
+    Eigen::VectorXd C0 = solver.solve(newRHS); 
+
+
+
+
+
     std::ofstream myFile;
     myFile.open("../matlab/cplusplus_output.m");
     myFile<<"C_0 = [ ";
