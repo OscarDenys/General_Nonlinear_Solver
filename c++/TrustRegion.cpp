@@ -169,6 +169,7 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     xtest = 1;
     std::cout << "f(x = 1 )= " << f(Kstelsel,fstelsel, Ffun, xtest, myMesh) << std::endl;
     double nanElem = 0;
+    
     bool stepNormLimitReached = false;
 
 
