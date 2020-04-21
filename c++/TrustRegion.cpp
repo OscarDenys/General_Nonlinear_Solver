@@ -33,6 +33,7 @@ OUTPUT
 - f0 = F(x0) (column vector)
 - J = J(x0)
 */
+/*
 void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
         std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
 
@@ -47,6 +48,7 @@ void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, array
     arrayxd x = x0;
     arrayxd f(x0.size());
     arrayxd Jcolj(x0.size());
+    int nancount = 0;
 
     for (int j = 0; j < Nx; j++){
         x(j) += h;
@@ -57,14 +59,17 @@ void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, array
             if (Jcolj(i) != 0 && !isnan(Jcolj(i))){
                 tripletList.push_back(Trip(i, j, Jcolj(i)));
             }
-            //if(isnan(Jcolj(i))){
-            //    std::cout<<"fin_diff_J: element is nan for i ="<< i <<" and j = "<< j << std::endl;
-            //}
+            if(isnan(Jcolj(i))){
+                nancount +=1;
+            }
         }
     }
+    if (nancount > 0){
+        std::cout<<"fin_diff_J: number of nans in jacobian = "<<nancount << std::endl;
+    }
     J.setFromTriplets(tripletList.begin(), tripletList.end()); // the initial content of J is destroyed.
-}
-/*
+}*/
+
 // CENTRAL FINITE DIFFERENCE
 void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
         std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
@@ -101,7 +106,7 @@ void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, array
         }
     }
     J.setFromTriplets(tripletList.begin(), tripletList.end()); // the initial content of J is destroyed.
-}*/
+}
 
 
 /*
@@ -127,15 +132,17 @@ double f(spmat & Kstelsel, arrayxd& fstelsel, void (*Ffun)(spmat &, arrayxd &, a
 void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,arrayxd&, arrayxd&, std::mesh&), arrayxd &x0, spmat &Kstelsel, arrayxd &fstelsel){
 
     // convergence tolerance
-    double grad_tol = 1e-20; // original 1e-4 
+    double grad_tol = 2e-20; // original 1e-4 
     int max_iters = 200;
 
     // regularization parameter
-    double lambda = 0.5;
+    double lambda =1e-16;// 0.5;
+    //double lambdascaling = 0.3;
+   // double lambdaMin = 1e-16;
 
     // trust region parameters
-    double MAX_Radius = 20;
-    double eita = 0.01; // decide on acceptance of step (between 0 and 1/4) step accepted if rho_k > eita
+    double MAX_Radius = 25;
+    double eita = 0.2; // decide on acceptance of step (between 0 and 1/4) step accepted if rho_k > eita
   
     // F = F(x0)
     arrayxd F(x0.size());
@@ -147,11 +154,13 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
 
     // loop initialization
     x = x0;
+    arrayxd xnext = x0;
     int Nx = x0.size();
     int Nf = F.size();
     spmat J(Nf,Nx);
     spmat A(Nx,Nx);
     double stepRadius = 1;
+
 
     //test objective function
     arrayxd xtest(x0.size());
@@ -160,14 +169,36 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
     xtest = 1;
     std::cout << "f(x = 1 )= " << f(Kstelsel,fstelsel, Ffun, xtest, myMesh) << std::endl;
     double nanElem = 0;
+    bool stepNormLimitReached = false;
 
+
+
+    // START ITERATING______________________________________________________________________________________________________________________________________________
     for (int k=1; k <= max_iters; k++){
+    
+        stepNormLimitReached = false;
 
         // check for divergence
-        assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // equivalent: x.cwiseAbs().maxCoeff() < 1e6
-
+        assert (x.maxCoeff() < 1e6 && x.minCoeff() > -1e6); // equivalent: x.cwiseAbs().maxCoeff() < 1e6 
+        
         // evaluate F(x) and it's jacobian J(x)
         finite_difference_jacob(F, J, Ffun, x, myMesh, Kstelsel, fstelsel);
+
+        if (k == 1){
+            // write J to matlab file
+            matxd Jdense = matxd(J);
+            std::ofstream myFileJac;
+            myFileJac.open("../matlab/jacobian.m");
+            myFileJac<<"Jdense = [ ";
+            for (int i = 0; i<Jdense.rows();i++){
+                for (int j = 0; j<Jdense.cols();j++){
+                    myFileJac<<Jdense(i,j)<<" ";
+                }
+            }
+            myFileJac<<"];";
+            myFileJac.close();
+            std::cout<<std::endl;
+        }
 
         //convergence criteria
         vectxd grad = J.transpose()*F.matrix(); // gradient of the scalar objective function f(x) // bring initialisation out of loop
@@ -206,16 +237,18 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         double stepNorm = pk.norm();
         if (stepNorm > stepRadius){
             pk *= (stepRadius/stepNorm);
+            stepNormLimitReached = true;
+            //std::cout<<" BEEP BOOP BIEP BOOP ...stepNorm > stepRadius ...   " << stepNormLimitReached << std::endl;
         }
         // x is in array and pk in vector, this should be fixed
-        arrayxd xnext = x + pk.array(); // bring initialisation out of loop
+        xnext = x + pk.array(); 
 
     // COMPUTE TRUSTWORTHINESS______________________________________________________________________________________
         // trustworthiness = rho_k = actual reduction / predicted reduction
         double fx = f(Kstelsel,fstelsel, Ffun, x, myMesh); //misschien helpt dit tegen nan
         double fxnext = f(Kstelsel,fstelsel, Ffun, xnext, myMesh); 
-        double Ared = fx - fxnext;
-        double Pred = -( grad.dot(pk) + 0.5* pk.dot(A*pk) );
+        double Ared = fx - fxnext; // actual reduction
+        double Pred = -( grad.dot(pk) + 0.5* pk.dot(A*pk) )*1e4; // predicted reduction
         double rhok = Ared/Pred;
 
         if (isnan(fx)){
@@ -238,24 +271,33 @@ void trustRegion(std::mesh &myMesh, arrayxd & x, void (*Ffun)(spmat&, arrayxd&,a
         if (rhok < 0.25){ // bad model, reduce radius
             stepRadius = 0.25 * stepRadius;
         }
-        else if (rhok > 0.75 && stepNorm == stepRadius){ // good model, inrease radius, but not too much
+        else if (rhok > 0.75 && stepNormLimitReached){ // good model, inrease radius, but not too much
             stepRadius = min(2*stepRadius, MAX_Radius);
+           // std::cout<<"          ...UPDATING stepRadius...   "<< stepRadius << std::endl;
         }
 
     // DECIDE ON ACCEPTANCE OF STEP___________________________________________________________________________
         if ( rhok > eita){
             x = xnext;
-            std::cout<<"          ...UPDATING X...   " << std::endl;
+           // std::cout<<"          ...UPDATING X...   " << std::endl;
         }
+
+       /* if ( abs(rhok-1) < 0.02 ){
+                lambda = max(lambda *lambdascaling, lambdaMin); 
+        }
+        else if (abs(rhok-1) > 0.1){
+                lambda = lambda/ lambdascaling; 
+        }*/
 
         // travelled distance from xo
         vectxd difference = (x0-x).matrix(); // bring initialisation out of loop
         double distance = difference.norm();
         
 
-        // print current log
-       std::cout<< "end of iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << fx <<" norm step = "<< pk.norm()<< " rho = "<< rhok << " Ared = "<< Ared << " Pred = "<<Pred << " distance = "<< distance << std::endl;
-
+        // print current log  // " Ared = "<< Ared << " Pred = "<< Pred <<
+       //std::cout<< "end of iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << fx <<" norm step = "<< pk.norm()<< " rho = "<< rhok <<  " travelled distance = "<< distance << "  Trust region radius = " << stepRadius << std::endl;
+       std::cout<< "        rho = "<< rhok <<  " Ared = "<< Ared << " Pred = "<< Pred << "  Trust region radius = " << stepRadius<< " lambda = "<< lambda << std::endl;
+       std::cout<< "end of iteration: "<< k << "  inf_norm_grad = "<< inf_norm_grad << " f(x) = " << fx <<" norm step = "<< pk.norm() <<  " travelled distance = "<< distance << std::endl;
     }
     
     std::cout<<" MAX_NB_ITERATIONS exceeded"<< std::endl;
