@@ -18,19 +18,16 @@ typedef double prec;
 namespace std {
 
     void integral1(std::mesh &myMesh, std::vector<Trip> &K){
-        // nodes --> list met nodes van mesh (label, x, y)
-        //--> !!! label = index in list dus points accesen met Xpoint(index) en Ypoint(index), isOnEdge(index) geeft een integer: 0 (=niet op edge), 1 of 2.
-
-        // elements --> list met elements van mesh (node1, node2, node3, boundary(integer))
-        //--> !!! boundary staat per node ipv per element dus Element(elementIndex) geeft (nodeIndex1,nodeIndex2,nodeIndex3).
-
+        
+        // Preallocate arrays in memory: 
         std::vector<int> currentElement(3);
         std::vector<float> P1(2), P2(2), P3(2);
         int n1, n2, n3;
         double det_jac, temp;
         std::vector<double> commonPart(2), result(2);
-        int nbNodes = myMesh.getNbNodes(); // TODO check if this works;
+        int nbNodes = myMesh.getNbNodes(); 
 
+        // Iterate over all elements and build stiffness matrix: 
         for (int element = 0; element < myMesh.getNbElements(); element++){
         myMesh.getElement(element, currentElement);
         n1 = currentElement[0];
@@ -44,19 +41,12 @@ namespace std {
         
         temp = (P1[0] + P2[0] + P3[0])/(6*det_jac);
 
-        // ---------------------------------------------------------------------------------
-        // This code snippet processes both the first integral of (5) and (6) in assignment.
-        // TODO: Integraal 1; eventueel deelfunctie maken hiervoor???
-        // TODO: herschrijf deze assignments zodra we weten hoe sparse matrix voorgesteld wordt.
-        // TODO: berekening commonPart vector kan geschreven worden in 1 lijn met vector bewerkingen?
-        //    door symmetrie van bewerkingen in r en z....
-
-        // ------
+        
         // Node 1
-        commonPart[0] = pow(P3[0]-P2[0],2);
-        commonPart[1] = pow(P3[1]-P2[1],2);
         // commonPart is a vector which contains the part to multiply with sigma_r in [0] and
         // the part with sigma_z in [1]...
+        commonPart[0] = pow(P3[0]-P2[0],2);
+        commonPart[1] = pow(P3[1]-P2[1],2);
         applySigmaAndAddCommonPart(result, commonPart);
         // result is vector with [result_u, result_v]
         K.push_back(Trip(n1, n1, temp*result[0]));
@@ -74,7 +64,6 @@ namespace std {
         K.push_back(Trip(n1, n3, temp*result[0]));
         K.push_back(Trip(nbNodes+n1, nbNodes+n3, temp*result[1]));
 
-        // ------
         // Node 2
         commonPart[0] = -(P3[0]-P2[0])*(P3[0]-P1[0]);
         commonPart[1] = (P2[1]-P3[1])*(P3[1]-P1[1]);
@@ -94,7 +83,6 @@ namespace std {
         K.push_back(Trip(n2, n3, temp*result[0]));
         K.push_back(Trip(nbNodes+n2, nbNodes+n3, temp*result[1]));
 
-        // ------
         // Node 3
         commonPart[0] = (P3[0]-P2[0])*(P2[0]-P1[0]);
         commonPart[1] = -(P2[1]-P3[1])*(P2[1]-P1[1]);
@@ -113,17 +101,13 @@ namespace std {
         applySigmaAndAddCommonPart(result, commonPart);
         K.push_back(Trip(n3, n3, temp*result[0]));
         K.push_back(Trip(nbNodes+n3, nbNodes+n3, temp*result[1]));
-        }
-
-    } // integral1()
+        } // integral1()
+    }
 
     void integral2lin(mesh &myMesh, vector<Trip> & K_lin, Eigen::VectorXd &f_lin) {
-        // create matrix K_lin and vector f_lin, where the second integral approximates
-        // (K_lin*c + f_lin)
-        //
-        //      K_lin not used in this linearisation
-        //
+        // Linearization of integral 2: H(C_amb)
 
+        // Preallocate arrays in memory:
         double Ru = evaluateRu(C_uamb, C_vamb);
         double Rv = evaluateRv(C_uamb, C_vamb, Ru);
         int M = myMesh.getNbNodes();
@@ -134,6 +118,7 @@ namespace std {
 
         int nbElements = myMesh.getNbElements();
 
+        // Iterate over elements and fill load vector:
         for (int elem = 0; elem < nbElements; elem++) {
             myMesh.getElement(elem, currElem);
             n1 = currElem[0];
@@ -155,7 +140,10 @@ namespace std {
     } // integral2lin()
 
     Eigen::ArrayXd integral2nonlinear(Eigen::ArrayXd &C, std::mesh &myMesh) {
-        Eigen::ArrayXd H(C.size()); // todo: vanzelf zero? 
+        // Evaluation of nonlinear H(C):
+
+        // Preallocate arrays in memory: 
+        Eigen::ArrayXd H(C.size());  
         double Ru12, Ru13, Ru23;
         double Rv12, Rv13, Rv23;
         int M = myMesh.getNbNodes();
@@ -166,6 +154,7 @@ namespace std {
 
         int nbElements = myMesh.getNbElements();
 
+        // Iterate over all elements and fill load vector: 
         for (int elem = 0; elem < nbElements; elem++) {
             myMesh.getElement(elem, currElem);
             n1 = currElem[0];
@@ -181,7 +170,7 @@ namespace std {
             evaluateRespiration(n1, n2, C, Ru12, Rv12);
             evaluateRespiration(n1, n3, C, Ru13, Rv13);
             evaluateRespiration(n2, n3, C, Ru23, Rv23);
-            // TODO: kloppen die mintekens hier?
+            
             H[n1]   += det_jac * ((P1[0]+P2[0])*Ru12 + (P1[0] + P3[0])*Ru13) / 24;
             H[n2]   += det_jac * ((P1[0]+P2[0])*Ru12 + (P2[0] + P3[0])*Ru23) / 24;
             H[n3]   += det_jac * ((P1[0]+P3[0])*Ru13 + (P2[0] + P3[0])*Ru23) / 24;
@@ -194,7 +183,7 @@ namespace std {
 
 
     void integral3(mesh &myMesh, std::vector<Trip> & K, Eigen::VectorXd & f) {
-        // create matrix K and vector f, where the line integral equals
+        // create matrix K_3 and vector f, where the line integral equals
         // (K*c + f)
 
         // init
@@ -308,8 +297,9 @@ namespace std {
     } // integral3()
 
     double detJac(vector<float> P1, vector<float> P2, vector<float> P3) {
-        return abs(double(P1[1]*P2[0] - P1[0]*P2[1] + P1[0]*P3[1] - P1[1]*P3[0] - P2[0]*P3[1] + P2[1]*P3[0])); // Bewerking op single prec floats opslaan in double precision float mag???
-    } // detJac                                                                                             //--> ja maar niet nodig want resultaat is ook single precision
+        // Return the determinant of the Jacobian (transformation to local coordinate-system)
+        return abs(double(P1[1]*P2[0] - P1[0]*P2[1] + P1[0]*P3[1] - P1[1]*P3[0] - P2[0]*P3[1] + P2[1]*P3[0])); 
+    } // detJac                                                                                        
 
 
     // Overleaf p3: f1, f2 & f3

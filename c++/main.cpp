@@ -26,42 +26,41 @@ int main() {
     //std::mesh testMesh(Xpoint,Ypoint,triangles,edge);
     // -----
 
-    // load mesh into variable   myMesh -------------------
-    // vector<float> Xpoints, Ypoints;
-    // vector<int> triangles, edge;
+    // --------------- load mesh into myMesh -------------------
+    // querry mesh sizes:
     vector<int> sizes(4, 1);
-    // sizes = [points.length, triangles.length, edge1.length, edge2.length]
     std::getMeshLengths(sizes);
     std::cout<<"sizes: ";
     for (int i = 0; i<sizes.size();i++){
       std::cout<<sizes[i]<<" ";
     }
     std::cout<<std::endl;
+    // Preallocate arrays in memory: 
     vector<float> Xpoint(sizes[0]);
     vector<float> Ypoint(sizes[0]);
     vector<int> triangles(sizes[1]);
     vector<int> edge1(sizes[2]);
     vector<int> edge2(sizes[3]);
+    // Load mesh
     loadMesh(Xpoint,Ypoint,triangles,edge1,edge2);
-
     std::mesh myMesh(Xpoint,Ypoint,triangles,edge1,edge2);
+
+
     // ----------------------------------------------------
 
 
     // Outline:
+    // solve for C_0: (K)C = -(f+f_lin)
     // K*C + f + H(c) = 0 (nonlinear system)
-    // start: solve for C: (K+K_lin)C = -(f+f_lin)
+  
 
-    // Implementation:
+    // Preallocate arrays: 
     int M = myMesh.getNbNodes();
     int nbBoundaryNodes = myMesh.getNbBoundaryNodes();
-    std::cout<<"been here"<<std::endl;
     vector<Eigen::Triplet<double>> KmatrixTriplets;
     KmatrixTriplets.reserve(2*9*M);
     vector<Eigen::Triplet<double>> KLinMatrixTriplets;
     KLinMatrixTriplets.reserve(2*9*M+2*3*nbBoundaryNodes);
-    //KmatrixTriplets.reserve(2*9*M);
-    //KLinMatrixTriplets.reserve(2*9*M+2*3*nbBoundaryNodes);
     Eigen::VectorXd f(2*M);
     Eigen::VectorXd f_lin(2*M);
 
@@ -70,13 +69,15 @@ int main() {
     //     third integral (K3, f3)
     //  Sparse variables optellen tot eind resultaat
     //      K = K1+K3, f = f3
-    integral1(myMesh, KmatrixTriplets); // Sibren_functions OK!
+
+    integral1(myMesh, KmatrixTriplets); 
     std::cout<<"KmatrixTriplets: ";
     //for (int i = 0; i<KmatrixTriplets.size();i++){
     for (int i = 0; i<10;i++){
       std::cout<<KmatrixTriplets[i].value()<<" ";
     }
     std::cout<<std::endl;
+
     integral2lin(myMesh, KLinMatrixTriplets, f_lin);
     std::cout<<"KLinmatrixTriplets: ";
     //for (int i = 0; i<KLinMatrixTriplets.size();i++){
@@ -90,6 +91,7 @@ int main() {
       std::cout<<f_lin[i]<<" ";
     }
     std::cout<<std::endl;
+
     integral3(myMesh, KmatrixTriplets, f);
     std::cout<<"KmatrixTriplets: ";
     //for (int i = 0; i<KmatrixTriplets.size();i++){
@@ -104,7 +106,7 @@ int main() {
     }
     std::cout<<std::endl;
 
-
+    // Setup linear system:
     int sizeK = M*2;
     Eigen::SparseMatrix<double> Kmatrix(sizeK,sizeK);
     Kmatrix.setFromTriplets(KmatrixTriplets.begin(), KmatrixTriplets.end());
@@ -113,14 +115,11 @@ int main() {
 
     KLinMatrix += Kmatrix;
 
-
-    // Solve voor lin oplossing (startwaarde)
-    // start: solve for C: (K+K_lin)C = -(f+f_lin)
+    // solve for C: (K)C = -(f+f_lin)
     Eigen::VectorXd newRHS = -(f+f_lin/100);
-
     Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
     Eigen::VectorXd C0 = chol.solve(newRHS);
-
+    // Write result to matlab output file: 
     std::ofstream myFile;
     myFile.open("../matlab/cplusplus_output.m");
     myFile<<"C_0 = [ ";
@@ -140,10 +139,8 @@ int main() {
     //std::cout<<"End of calculations C0..."<<std::endl;
 
     // Functie die second integral evalueert voor gegeven C --> H(c)
-
     Eigen::ArrayXd C0_array = C0.array();
     Eigen::ArrayXd f_array = f.array();
-    
     Eigen::ArrayXd C_array(2*M);
     
 

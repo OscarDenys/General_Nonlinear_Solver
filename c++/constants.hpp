@@ -42,17 +42,8 @@ namespace std {
     const float p_atm = 101300;
     const float C_uamb = p_atm * nu_u / (R_g * T);
     const float C_vamb = p_atm * nu_v / (R_g * T);
-    // -----------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------   
 
-    // constants for evaluation the linearised second integral (cf. math derivation sec. 1.3-1.4)
-    // all these constants use the prefix lin_
-    // double lin_k = K_mv*V_mu / (120* pow(K_mu+C_uamb,2)* pow(K_mv+C_vamb,2));
-    // double lin_alpha = 5* C_uamb* (K_mv*C_uamb + 2*C_uamb*C_vamb + K_mu*C_vamb );
-    // double lin_beta = K_mu* (K_mv + C_vamb);
-    // double lin_gamma = -C_uamb* (K_mu + C_uamb);
-    // double lin_kappa = K_mfu*V_mfv/ (120* pow(K_mfu+C_uamb,2));
-    // double lin_delta = 5* (K_mfu + 2*C_uamb);
-
-} // namespace std
+}
 
 #endif
