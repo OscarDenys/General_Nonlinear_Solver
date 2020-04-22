@@ -108,6 +108,42 @@ void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, array
     }
     J.setFromTriplets(tripletList.begin(), tripletList.end()); // the initial content of J is destroyed.
 }
+/* NORMAL FINITE DIFFERENCE FROM TRUSTREGION
+void finite_difference_jacob(arrayxd &f0, spmat & J, void (*Ffun)(spmat &, arrayxd&, arrayxd &, arrayxd&, std::mesh&), arrayxd x0, 
+        std::mesh &myMesh, spmat &Kstelsel, arrayxd &fstelsel){
+
+    //J.setZero();
+    int Nx = x0.size();
+    (*Ffun)(Kstelsel, fstelsel, x0, f0, myMesh); // f0 = F(x0)
+
+    // perform finite difference jacobian evaluation
+    double h = 1e-6; // stepsize for first order approximation // original 1e-6
+    std::vector<Trip> tripletList; //triplets.reserve(estimation_of_entries); //--> how many nonzero elements in J?
+
+    arrayxd x = x0;
+    arrayxd f(x0.size());
+    arrayxd Jcolj(x0.size());
+    int nancount = 0;
+
+    for (int j = 0; j < Nx; j++){
+        x(j) += h;
+        (*Ffun)(Kstelsel, fstelsel, x, f, myMesh);
+        Jcolj = (f-f0)*(1/h);
+
+        for ( int i = 0; i < Jcolj.size(); i++){
+            if (Jcolj(i) != 0 && !isnan(Jcolj(i))){
+                tripletList.push_back(Trip(i, j, Jcolj(i)));
+            }
+            if(isnan(Jcolj(i))){
+                nancount +=1;
+            }
+        }
+    }
+    if (nancount > 0){
+        std::cout<<"fin_diff_J: number of nans in jacobian = "<<nancount << std::endl;
+    }
+    J.setFromTriplets(tripletList.begin(), tripletList.end()); // the initial content of J is destroyed.
+}*/
 
 
 /*
