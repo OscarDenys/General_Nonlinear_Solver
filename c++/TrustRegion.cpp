@@ -6,11 +6,6 @@
 #include <iostream>
 #include "mesh.hpp"
 
-// TODO
-// update make file
-// make hpp file (check first if first draft is finished)
-// test and debug ---> print output after iteration
-
 
 typedef Eigen::SparseMatrix<double> spmat; // declares a column-major sparse matrix type of double
 typedef Eigen::Triplet<double> Trip;
