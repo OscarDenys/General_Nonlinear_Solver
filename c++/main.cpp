@@ -13,21 +13,13 @@ using namespace std;
 
 
 int main() {
-    // (if this code is in your way, put it in the "sem_functions" file)
-    // creation of small 1-triangle mesh to test on
     //
     //      "|\"
     //      "|_\"
     //
-    //vector<float> Xpoint{0,0,0.5};
-    //vector<float> Ypoint{0,1,0};
-    //vector<int> triangles{1,2,3};
-    //vector<int> edge{2,3,1};
-    //std::mesh testMesh(Xpoint,Ypoint,triangles,edge);
-    // -----
-
+    
     // --------------- load mesh into myMesh -------------------
-    // querry mesh sizes:
+    // query mesh sizes:
     vector<int> sizes(4, 1);
     std::getMeshLengths(sizes);
     std::cout<<"sizes: ";
@@ -41,7 +33,7 @@ int main() {
     vector<int> triangles(sizes[1]);
     vector<int> edge1(sizes[2]);
     vector<int> edge2(sizes[3]);
-    // Load mesh
+    // Load mesh:
     loadMesh(Xpoint,Ypoint,triangles,edge1,edge2);
     std::mesh myMesh(Xpoint,Ypoint,triangles,edge1,edge2);
 
@@ -71,40 +63,40 @@ int main() {
     //      K = K1+K3, f = f3
 
     integral1(myMesh, KmatrixTriplets); 
-    std::cout<<"KmatrixTriplets: ";
-    //for (int i = 0; i<KmatrixTriplets.size();i++){
-    for (int i = 0; i<10;i++){
-      std::cout<<KmatrixTriplets[i].value()<<" ";
-    }
-    std::cout<<std::endl;
+    // std::cout<<"KmatrixTriplets: ";
+    // //for (int i = 0; i<KmatrixTriplets.size();i++){
+    // for (int i = 0; i<10;i++){
+    //   std::cout<<KmatrixTriplets[i].value()<<" ";
+    // }
+    // std::cout<<std::endl;
 
     integral2lin(myMesh, KLinMatrixTriplets, f_lin);
-    std::cout<<"KLinmatrixTriplets: ";
-    //for (int i = 0; i<KLinMatrixTriplets.size();i++){
-    for (int i = 0; i<10;i++){
-      std::cout<<KLinMatrixTriplets[i].value()<<" ";
-    }
-    std::cout<<std::endl;
-    std::cout<<"f_lin: ";
-    //for (int i = 0; i<f_lin.size();i++){
-    for (int i = 0; i<10;i++){
-      std::cout<<f_lin[i]<<" ";
-    }
-    std::cout<<std::endl;
+    // std::cout<<"KLinmatrixTriplets: ";
+    // //for (int i = 0; i<KLinMatrixTriplets.size();i++){
+    // for (int i = 0; i<10;i++){
+    //   std::cout<<KLinMatrixTriplets[i].value()<<" ";
+    // }
+    // std::cout<<std::endl;
+    // std::cout<<"f_lin: ";
+    // //for (int i = 0; i<f_lin.size();i++){
+    // for (int i = 0; i<10;i++){
+    //   std::cout<<f_lin[i]<<" ";
+    // }
+    // std::cout<<std::endl;
 
     integral3(myMesh, KmatrixTriplets, f);
-    std::cout<<"KmatrixTriplets: ";
-    //for (int i = 0; i<KmatrixTriplets.size();i++){
-    for (int i = 0; i<10;i++){
-      std::cout<<KmatrixTriplets[i].value()<<" ";
-    }
-    std::cout<<std::endl;
-    std::cout<<"f: ";
-    //for (int i = 0; i<f.size();i++){
-    for (int i = 0; i<10;i++){
-      std::cout<<f[i]<<" ";
-    }
-    std::cout<<std::endl;
+    // std::cout<<"KmatrixTriplets: ";
+    // //for (int i = 0; i<KmatrixTriplets.size();i++){
+    // for (int i = 0; i<10;i++){
+    //   std::cout<<KmatrixTriplets[i].value()<<" ";
+    // }
+    // std::cout<<std::endl;
+    // std::cout<<"f: ";
+    // //for (int i = 0; i<f.size();i++){
+    // for (int i = 0; i<10;i++){
+    //   std::cout<<f[i]<<" ";
+    // }
+    // std::cout<<std::endl;
 
     // Setup linear system:
     int sizeK = M*2;
@@ -117,10 +109,6 @@ int main() {
 
     // solve for C: (K)C = -(f+f_lin)
     Eigen::VectorXd newRHS = -(f+f_lin/100);
-
-    //Eigen::SimplicialCholesky<Eigen::SparseMatrix<double>> chol(KLinMatrix);
-    //Eigen::VectorXd C0 = chol.solve(newRHS);
-
     Eigen::SparseLU<Eigen::SparseMatrix<double> > solver;
     solver.analyzePattern(KLinMatrix);
     solver.factorize(KLinMatrix);
@@ -128,9 +116,7 @@ int main() {
         std::cout << "main: error in Eigen Sparse LU factorization KLinMatrix" << std::endl;
     }
     Eigen::VectorXd C0 = solver.solve(newRHS); 
-
-
-
+    std::cout<<std::endl<<"Found start solution..."<<std::endl;
 
 
     std::ofstream myFile;
@@ -141,7 +127,7 @@ int main() {
     }
     myFile<<"];";
     myFile.close();
-    std::cout<<std::endl;
+    std::cout<<"C_0 written to file"<<std::endl;
 
     //std::cout<<"C0: ";
     //for (int i = 0; i<f.size();i++){
@@ -159,21 +145,10 @@ int main() {
 
     std::trustRegion(myMesh, C_array, std::evaluateCostFunction, C0_array, Kmatrix, f_array);
 
-    Eigen::VectorXd C_nonlin = C_array.matrix();
-/*
-    // print first 15 elements of C0 and C nonlin for comparison
-    std::cout<<"C nonlin : ";
-    for (int i = 0; i<15;i++){
-      std::cout<<C_nonlin[i]<<" ";
-    }
-    std::cout<<std::endl;
+    std::cout<<std::endl<<"Nonlinear solver converged, writing solution to file..."<<std::endl;
 
-    std::cout<<"C 0 : ";
-    for (int i = 0; i<15;i++){
-      std::cout<<C0[i]<<" ";
-    }
-    std::cout<<std::endl;
-*/
+    Eigen::VectorXd C_nonlin = C_array.matrix();
+
     // write C nonlin to matlab file
     std::ofstream myFileNonLin;
     myFileNonLin.open("../matlab/cnonlin_output.m");
@@ -185,17 +160,7 @@ int main() {
     myFileNonLin.close();
     std::cout<<std::endl;
 
-    // integral2nonlinear(myMesh, C_current, H); // Sibren_functions OK!
-
-
-    // Solve nonlinear createLinearSystem
-    // nonlinear_optimise_function(C) = K*C + f + H --> solven voor C tot gelijk aan 0.
-    // nonlinear_optimise_function(C, K, f, H);
-
-
-    // Output resultaat C
-
-    // Plot C in Matlab
+    std::cout<<"File write complete."<<std::endl;
 
     return 0;
 }
